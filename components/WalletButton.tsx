@@ -2,9 +2,10 @@
 
 import { useEffect, useState } from "react";
 import { Check, Copy, LogOut, Wallet } from "lucide-react";
+import { Balance } from "@/components/Balance";
 import { Button } from "@/components/ui/button";
 import { AppClient } from "@/lib/solana";
-import { PHANTOM_WALLET_NAME, shortenAddress } from "@/lib/utils";
+import { PHANTOM_WALLET_NAME, shortenAddress } from "@/components/utils";
 import {
   useConnect,
   useConnectedWallet,
@@ -12,6 +13,7 @@ import {
   useWallets,
   useWalletStatus,
 } from "@solana/kit-plugin-wallet/react";
+import { address as toAddress } from "@solana/kit";
 import { useClient } from "@solana/react";
 
 export const WalletButton = () => {
@@ -35,7 +37,7 @@ export const WalletButton = () => {
   if (status === "pending") return null; // wait out auto-reconnect
 
   if (connected) {
-    const address = connected.account.address;
+    const address = toAddress(connected.account.address);
 
     return (
       <div className="flex items-center gap-1 rounded-lg border bg-muted/40 py-1 pr-1 pl-2.5">
@@ -45,6 +47,8 @@ export const WalletButton = () => {
           alt={connected.wallet.name}
           className="size-4 rounded-sm"
         />
+        <Balance address={address} />
+        <span className="h-4 w-px bg-border" />
         <span className="px-1 font-mono text-sm" title={address}>
           {shortenAddress(address)}
         </span>
