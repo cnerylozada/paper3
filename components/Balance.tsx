@@ -19,30 +19,29 @@ export const Balance = ({ address }: { address: Address }) => {
 
   return (
     <div className="flex items-center gap-1">
-      {data ? (
-        <span className="px-1 text-sm font-medium tabular-nums">
-          {formatSol(data.value)}{" "}
-          <span className="text-muted-foreground">SOL</span>
-        </span>
-      ) : status === "error" ? (
-        <span role="alert" className="px-1 text-sm text-destructive">
-          Balance unavailable
-        </span>
+      {status === "error" ? (
+        <>
+          <span role="alert" className="px-1 text-sm text-destructive">
+            Balance unavailable
+          </span>
+          <Button
+            variant="ghost"
+            size="icon-sm"
+            aria-label="Refresh balance"
+            title="Refresh balance"
+            disabled={isFetching}
+            onClick={() => refresh()}
+          >
+            <RefreshCw className={cn(isFetching && "animate-spin")} />
+          </Button>
+        </>
       ) : (
-        // First load: no data yet
-        <span className="mx-1 h-4 w-16 animate-pulse rounded bg-muted" />
-      )}
-      {status !== "success" && (
-        <Button
-          variant="ghost"
-          size="icon-sm"
-          aria-label="Refresh balance"
-          title="Refresh balance"
-          disabled={isFetching}
-          onClick={() => refresh()}
-        >
-          <RefreshCw className={cn(isFetching && "animate-spin")} />
-        </Button>
+        data && (
+          <span className="px-1 text-sm font-medium tabular-nums">
+            {formatSol(data.value)}{" "}
+            <span className="text-muted-foreground">SOL</span>
+          </span>
+        )
       )}
     </div>
   );

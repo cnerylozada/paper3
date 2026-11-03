@@ -1,7 +1,9 @@
+import { TokenBalance } from "@/components/TokenBalance";
+
 export default function Page() {
   return (
     <div>
-      <div>Dashboard page</div>
+      <TokenBalance />
     </div>
   );
 }

@@ -28,7 +28,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
       <body>
         <SolanaProvider>
           <Header />
-          {children}
+          <main className="p-6">{children}</main>
         </SolanaProvider>
       </body>
     </html>

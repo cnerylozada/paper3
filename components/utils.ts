@@ -13,3 +13,12 @@ export const formatSol = (lamports: bigint) => {
   const decimals = fraction.toString().padStart(4, "0").replace(/0+$/, "");
   return decimals ? `${whole}.${decimals}` : `${whole}`;
 };
+
+// Base units -> human readable amount, e.g. (20000000000n, 9) -> "20"
+export const formatTokenAmount = (amount: bigint, decimals: number) => {
+  const base = BigInt(10) ** BigInt(decimals);
+  const whole = amount / base;
+  const fraction = (amount % base).toString().padStart(decimals, "0");
+  const trimmed = fraction.replace(/0+$/, "");
+  return trimmed ? `${whole}.${trimmed}` : `${whole}`;
+};
