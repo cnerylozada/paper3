@@ -27,9 +27,17 @@ Next.js App Router dapp (React 19, Tailwind v4, shadcn/ui) that connects a Phant
 
 ### Fetching with `useRequest` (`@solana/react`)
 
-`useRequest` re-fires whenever the identity of its argument changes, so the argument must be memoized. Convention in this repo:
-- **One RPC call** → `useMemo(() => client.rpc.method(...), deps)`, pass the request object (see `components/Balance.tsx`).
-- **Multi-step or multi-request work** → a single `useCallback` that closes over the `useClient()` client (no client param), see `fetchOwnerBalances` in `components/TokenBalance.tsx`.
+`const { data, status, refresh } = useRequest(source)` works like TanStack Query: it fetches on mount, exposes `data` / `status` (`"fetching"`, `"error"`, ...) / `refresh()`, and **refetches whenever `source` changes identity**. A new `source` on every render means an endless refetch loop, so always memoize it.
+
+**Which hook?** Count the calls:
+
+- **One RPC call → `useMemo`.** Memoize the request object: `useMemo(() => client.rpc.getBalance(address), [client, address])` (`components/Balance.tsx`).
+- **Several calls (chained or over a list) → `useCallback`.** Memoize an async function: `useCallback(() => Promise.all(...), [client, walletAddress])` (`fetchOwnerBalances` in `components/TokenBalance.tsx`).
+
+Rules for both:
+- The dependency array is the refetch trigger: list everything the request reads (`client`, the wallet address). Module-level constants like `MINTS` don't need to be listed.
+- The function closes over the `useClient()` client, so don't pass `client` as a param.
+- Gate on the wallet above the component that calls `useRequest`, so the address arrives non-null (see the wrapper/inner split below).
 
 Installed `@solana/react` types differ from its README in places (e.g. `useTrackedData` field names); trust the `.d.ts` files.
 
@@ -37,7 +45,7 @@ Installed `@solana/react` types differ from its README in places (e.g. `useTrack
 
 `components/TokenBalance.tsx` derives each ATA with `findAssociatedTokenPda` from `@solana-program/token`, using `mintAccount.programAddress` (fetched via `client.token.accounts.mint.fetch`) as the token program. This works for both classic Token and Token-2022 mints without installing `@solana-program/token-2022`. The plugin returns raw base units, so amounts are formatted with `formatTokenAmount` using the mint's decimals. The mint list (`MINTS`) is hardcoded in the file.
 
-`TokenBalance` is split into a wrapper (checks `useWalletStatus` / `useConnectedWallet`, renders nothing while `pending` auto-reconnect) and an inner `TokenBalanceList` that receives a guaranteed `owner`. Keep wallet checks above any component that calls hooks needing an owner.
+`TokenBalance` is split into a wrapper (checks `useWalletStatus` / `useConnectedWallet`, renders nothing while `pending` auto-reconnect) and an inner `TokenBalanceList` that receives a guaranteed `walletAddress`. Keep wallet checks above any component that calls hooks needing an owner.
 
 ## Conventions and gotchas
 
