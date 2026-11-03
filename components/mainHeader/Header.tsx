@@ -1,4 +1,4 @@
-import { WalletButton } from "@/components/WalletButton";
+import { HeaderActions } from "@/components/mainHeader/HeaderActions";
 
 export function Header() {
   return (
@@ -8,7 +8,7 @@ export function Header() {
           FS1 SVM Dapp
         </span>
         <div className="flex items-center gap-3">
-          <WalletButton />
+          <HeaderActions />
         </div>
       </div>
     </header>

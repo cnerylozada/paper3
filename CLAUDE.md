@@ -45,5 +45,5 @@ Installed `@solana/react` types differ from its README in places (e.g. `useTrack
 - `tsconfig` targets ES2017, so **bigint literals (`1n`) don't compile**; use `BigInt(...)`.
 - shadcn style is `base-nova` (built on `@base-ui/react`, not Radix): polymorphic buttons use the `render` prop, not `asChild`. `cn` comes from `lib/utils.ts`, which re-exports it from the `cn` package (the shadcn default; keep it).
 - App-specific helpers (`shortenAddress`, `formatSol`, `formatTokenAmount`, `PHANTOM_WALLET_NAME`) live in `components/utils.ts`, separate from shadcn's `lib/utils.ts`.
-- Only Phantom is surfaced in the UI (`WalletButton` filters discovered wallets by name).
+- Only Phantom is surfaced in the UI (`ConnectWalletButton` filters discovered wallets by name; `HeaderActions` shows the connect button or, when connected, the Dashboard link and wallet pill).
 - Wallet icons are data URIs, hence the `eslint-disable @next/next/no-img-element` comments on `<img>`.
