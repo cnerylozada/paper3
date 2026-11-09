@@ -1,7 +1,8 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
-import { SolanaProvider } from "@/components/solana-provider";
+import { PrivySVMProvider } from "@/components/providers/PrivySVMProvider";
+import { SolanaKitProvider } from "@/components/providers/SolanaKitProvider";
 import { MainHeader } from "@/components/mainHeader/MainHeader";
 
 const geistSans = Geist({
@@ -26,10 +27,12 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
       className={`${geistSans.variable} ${geistMono.variable} antialiased`}
     >
       <body>
-        <SolanaProvider>
-          <MainHeader />
-          <main className="p-6">{children}</main>
-        </SolanaProvider>
+        <PrivySVMProvider>
+          <SolanaKitProvider>
+            <MainHeader />
+            <main className="p-6">{children}</main>
+          </SolanaKitProvider>
+        </PrivySVMProvider>
       </body>
     </html>
   );

@@ -23,7 +23,7 @@ Next.js App Router dapp (React 19, Tailwind v4, shadcn/ui) that connects a Phant
 
 `lib/solana.ts` builds one module-level client with `createClient().use(...)` from `@solana/kit` plugins, and exports `AppClient` (its type). Plugin order matters: `walletSigner` must come before `solanaDevnetRpc` because the RPC plugin requires a payer. The client exposes `client.rpc`, `client.system`, `client.token`, and `client.payer`/`client.identity` (the connected wallet's signer).
 
-`components/solana-provider.tsx` (`"use client"`) publishes that client with `ClientProvider` from `@solana/react`; `app/layout.tsx` wraps everything in it and renders `Header` (`components/mainHeader/`). Components read the client with `useClient<AppClient>()` and pass it to the wallet hooks from `@solana/kit-plugin-wallet/react` (`useConnectedWallet`, `useConnect`, `useWalletStatus`, ...). The client reference must stay stable (module scope).
+`components/providers/SolanaProvider.tsx` (`"use client"`) publishes that client with `ClientProvider` from `@solana/react`; `app/layout.tsx` wraps everything in it and renders `Header` (`components/mainHeader/`). Components read the client with `useClient<AppClient>()` and pass it to the wallet hooks from `@solana/kit-plugin-wallet/react` (`useConnectedWallet`, `useConnect`, `useWalletStatus`, ...). The client reference must stay stable (module scope).
 
 ### Fetching with `useRequest` (`@solana/react`)
 
