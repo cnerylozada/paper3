@@ -37,7 +37,7 @@ const MINTS = [
 
 export const TokenBalances = () => {
   const client = useClient<AppClient>();
-  const { address: walletAddress, fallback } = useWalletAddress();
+  const { walletAddress, noWalletFallback } = useWalletAddress();
 
   // One lookup per mint, all in parallel. `null` disables the request until
   // a wallet is connected.
@@ -69,7 +69,7 @@ export const TokenBalances = () => {
   const { data, status, refresh } = useRequest(fetchOwnerBalances);
   const isFetching = status === "fetching";
 
-  if (!walletAddress) return fallback;
+  if (!walletAddress) return noWalletFallback;
 
   return (
     <Card className="w-full max-w-2xl">

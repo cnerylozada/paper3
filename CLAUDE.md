@@ -37,7 +37,7 @@ Next.js App Router dapp (React 19, Tailwind v4, shadcn/ui) that connects a Phant
 Rules for both:
 - The dependency array is the refetch trigger: list everything the request reads (`client`, the wallet address). Module-level constants like `MINTS` don't need to be listed.
 - The function closes over the `useClient()` client, so don't pass `client` as a param.
-- Get the wallet with `useWalletAddress()` (`components/hooks.tsx`). Hooks can't run after an early return, so pass `null` to `useRequest` while `address` is null and `return fallback` after the hooks.
+- Get the wallet with `useWalletAddress()` (`components/hooks.tsx`). Hooks can't run after an early return, so pass `null` to `useRequest` while `walletAddress` is null and `return noWalletFallback` after the hooks.
 
 Installed `@solana/react` types differ from its README in places (e.g. `useTrackedData` field names); trust the `.d.ts` files.
 
@@ -45,7 +45,7 @@ Installed `@solana/react` types differ from its README in places (e.g. `useTrack
 
 `components/dashboard/TokenBalances.tsx` derives each ATA with `findAssociatedTokenPda` from `@solana-program/token`, using `mintAccount.programAddress` (fetched via `client.token.accounts.mint.fetch`) as the token program. This works for both classic Token and Token-2022 mints without installing `@solana-program/token-2022`. The plugin returns raw base units, so amounts are formatted with `formatTokenAmount` using the mint's decimals. The mint list (`MINTS`) is hardcoded in the file.
 
-`TokenBalances` is a single component. `useWalletAddress()` returns `{ address, fallback }`: `address` is null until a wallet is connected, and `fallback` is `null` while `pending` auto-reconnect runs and a "Connect your wallet" hint afterwards. Components that need a connected wallet do `if (!address) return fallback;` (after their hooks).
+`TokenBalances` is a single component. `useWalletAddress()` returns `{ walletAddress, noWalletFallback }`: `walletAddress` is null until a wallet is connected, and `noWalletFallback` is `null` while `pending` auto-reconnect runs and a "Connect your wallet" hint afterwards. Components that need a connected wallet do `if (!walletAddress) return noWalletFallback;` (after their hooks).
 
 ## Conventions and gotchas
 
