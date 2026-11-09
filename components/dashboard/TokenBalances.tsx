@@ -1,14 +1,10 @@
 "use client";
 
-import { address, type Address } from "@solana/kit";
-import {
-  useConnectedWallet,
-  useWalletStatus,
-} from "@solana/kit-plugin-wallet/react";
+import { address } from "@solana/kit";
 import { useClient, useRequest } from "@solana/react";
 import { findAssociatedTokenPda } from "@solana-program/token";
 import { RefreshCw } from "lucide-react";
-import { useCallback } from "react";
+import { useMemo } from "react";
 import { CopyAddress } from "@/components/CopyAddress";
 import { Button } from "@/components/ui/button";
 import {
@@ -30,6 +26,7 @@ import {
 import { cn } from "@/lib/utils";
 import { formatTokenAmount } from "@/components/utils";
 import { AppClient } from "@/lib/solana";
+import { useWalletAddress } from "@/components/hooks";
 
 // Hardcoded for now
 const MINTS = [
@@ -38,30 +35,16 @@ const MINTS = [
   address("tkmtgcJCzSMCzvSGZUikSSY9ZwEoMwWwsLpkofBmFYQ"),
 ];
 
-export const TokenBalance = () => {
+export const TokenBalances = () => {
   const client = useClient<AppClient>();
-  const status = useWalletStatus(client);
-  const connected = useConnectedWallet(client);
+  const { address: walletAddress, fallback } = useWalletAddress();
 
-  if (status === "pending") return null;
-  if (!connected)
-    return (
-      <p className="text-sm text-muted-foreground">
-        Connect your wallet to see your token balances.
-      </p>
-    );
+  // One lookup per mint, all in parallel. `null` disables the request until
+  // a wallet is connected.
+  const fetchOwnerBalances = useMemo(() => {
+    if (!walletAddress) return null;
 
-  return (
-    <TokenBalanceList walletAddress={address(connected.account.address)} />
-  );
-};
-
-const TokenBalanceList = ({ walletAddress }: { walletAddress: Address }) => {
-  const client = useClient<AppClient>();
-
-  // One lookup per mint, all in parallel
-  const fetchOwnerBalances = useCallback(
-    () =>
+    return () =>
       Promise.all(
         MINTS.map(async (mint) => {
           const mintAccount = await client.token.accounts.mint.fetch(mint);
@@ -81,11 +64,12 @@ const TokenBalanceList = ({ walletAddress }: { walletAddress: Address }) => {
             ),
           };
         }),
-      ),
-    [client, walletAddress],
-  );
+      );
+  }, [client, walletAddress]);
   const { data, status, refresh } = useRequest(fetchOwnerBalances);
   const isFetching = status === "fetching";
+
+  if (!walletAddress) return fallback;
 
   return (
     <Card className="w-full max-w-2xl">
