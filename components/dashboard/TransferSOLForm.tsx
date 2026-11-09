@@ -1,11 +1,12 @@
 "use client";
 
 import { zodResolver } from "@hookform/resolvers/zod";
-import { address, isAddress, lamports, sol } from "@solana/kit";
+import { address, isAddress, sol } from "@solana/kit";
 import { Send } from "lucide-react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { Balance } from "@/components/Balance";
+import { TransactionSuccess } from "@/components/TransactionSuccess";
 import { useWalletAddress } from "@/components/hooks";
 import { Button } from "@/components/ui/button";
 import {
@@ -18,7 +19,7 @@ import {
 } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { useClient } from "@solana/react";
+import { useClient, useSendTransaction } from "@solana/react";
 import { AppClient } from "@/lib/solana";
 
 // Kept as a string: SOL has 9 decimals, so the amount is converted to lamports later
@@ -36,31 +37,34 @@ const transferSchema = z.object({
     .refine((value) => Number(value) > 0, "Amount must be greater than 0"),
 });
 
-type TransferValues = z.infer<typeof transferSchema>;
+type TransferSchemaType = z.infer<typeof transferSchema>;
 
 export const TransferSOLForm = () => {
   const client = useClient<AppClient>();
   const { walletAddress, noWalletFallback } = useWalletAddress();
+  const { data, dispatch, isRunning, isSuccess, isError, error, reset } =
+    useSendTransaction(client);
 
   const {
     register,
     handleSubmit,
-    formState: { errors, isSubmitting },
-  } = useForm<TransferValues>({
+    formState: { errors },
+  } = useForm<TransferSchemaType>({
     resolver: zodResolver(transferSchema),
     defaultValues: { destination: "", amount: "" },
   });
 
   if (!walletAddress) return noWalletFallback;
 
-  const onSubmit = async (values: TransferValues) => {
-    const transferIx = client.system.instructions.transferSol({
-      source: client.payer,
-      destination: address(values.destination),
-      amount: sol(values.amount).raw,
-    });
-    const transferTxResult = await client.sendTransaction([transferIx]);
-    console.log("transferTxResult", transferTxResult.context.signature);
+  const onSubmit = (values: TransferSchemaType) => {
+    reset();
+    dispatch(
+      client.system.instructions.transferSol({
+        source: client.payer,
+        destination: address(values.destination),
+        amount: sol(values.amount).raw,
+      }),
+    );
   };
 
   return (
@@ -80,6 +84,17 @@ export const TransferSOLForm = () => {
             </CardDescription>
           </CardHeader>
           <CardContent className="flex flex-col gap-4">
+            {isSuccess && data && (
+              <TransactionSuccess signature={data.context.signature} />
+            )}
+            {isError && (
+              <p
+                role="alert"
+                className="rounded-lg border border-destructive/50 p-3 text-sm text-destructive"
+              >
+                {error instanceof Error ? error.message : "Transaction failed"}
+              </p>
+            )}
             <div className="flex flex-col gap-2">
               <Label htmlFor="destination">Destination</Label>
               <Input
@@ -137,11 +152,11 @@ export const TransferSOLForm = () => {
           <CardFooter>
             <Button
               type="submit"
-              disabled={isSubmitting}
+              disabled={isRunning}
               className="w-full sm:w-auto"
             >
               <Send />
-              Transfer
+              {isRunning ? "Sending…" : "Transfer"}
             </Button>
           </CardFooter>
         </form>
