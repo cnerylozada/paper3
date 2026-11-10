@@ -1,27 +1,18 @@
-"use client";
-
+import { usePrivy } from "@privy-io/react-auth";
 import { Wallet } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { AppClient } from "@/lib/solana";
-import { PHANTOM_WALLET_NAME } from "@/components/utils";
-import { useConnect, useWallets } from "@solana/kit-plugin-wallet/react";
-import { useClient } from "@solana/react";
 
 export const ConnectWalletButton = () => {
-  const client = useClient<AppClient>();
-
-  const phantom = useWallets(client).find(
-    (w) => w.name === PHANTOM_WALLET_NAME,
-  );
-  const connect = useConnect(client);
+  // ready: Privy has finished initializing (restored any previous session), so its state can be trusted.
+  //        Before that, `authenticated` is always false, even for a user who is actually logged in.
+  // authenticated: the user has a Privy session (logged in with Google or a wallet).
+  //        Only meaningful once `ready` is true.
+  const { ready, authenticated, login } = usePrivy();
 
   return (
-    <Button
-      disabled={!phantom || connect.isRunning}
-      onClick={() => phantom && connect.dispatch(phantom)}
-    >
+    <Button disabled={!ready || authenticated} onClick={() => login()}>
       <Wallet />
-      Connect Phantom
+      Connect with Privy
     </Button>
   );
 };

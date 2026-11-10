@@ -1,9 +1,8 @@
 "use client";
 
 import { PrivyProvider } from "@privy-io/react-auth";
+import { toSolanaWalletConnectors } from "@privy-io/react-auth/solana";
 
-// Auth layer: Google login only. Each user gets a Privy embedded Solana wallet on login,
-// so they can sign transactions without installing a wallet extension.
 export const PrivySVMProvider = ({
   children,
 }: {
@@ -12,12 +11,13 @@ export const PrivySVMProvider = ({
   <PrivyProvider
     appId={process.env.NEXT_PUBLIC_PRIVY_APP_ID!}
     config={{
-      loginMethods: ["google"],
       embeddedWallets: {
         solana: {
           createOnLogin: "users-without-wallets",
         },
       },
+      appearance: { walletChainType: "ethereum-and-solana" },
+      externalWallets: { solana: { connectors: toSolanaWalletConnectors() } },
     }}
   >
     {children}
