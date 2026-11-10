@@ -1,25 +1,19 @@
 "use client";
 
-import { address } from "@solana/kit";
-import {
-  useConnectedWallet,
-  useWalletStatus,
-} from "@solana/kit-plugin-wallet/react";
-import { useClient } from "@solana/react";
-import { AppClient } from "@/lib/solana";
+import { usePrivy } from "@privy-io/react-auth";
+import { useWallets } from "@privy-io/react-auth/solana";
 
 export const useWalletAddress = () => {
-  const client = useClient<AppClient>();
-  const status = useWalletStatus(client);
-  const connected = useConnectedWallet(client);
+  const { ready, authenticated } = usePrivy();
+  const { wallets } = useWallets();
+  const wallet = wallets[0];
 
   return {
-    walletAddress: connected ? address(connected.account.address) : null,
-    noWalletFallback:
-      status === "pending" ? null : (
-        <p className="text-sm text-muted-foreground">
-          Connect your wallet to continue.
-        </p>
-      ),
+    wallet: !ready || !authenticated || !wallet ? null : wallet,
+    noWalletFallback: (
+      <p className="text-sm text-muted-foreground">
+        Connect your wallet to continue.
+      </p>
+    ),
   };
 };

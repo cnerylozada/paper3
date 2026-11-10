@@ -1,13 +1,25 @@
 "use client";
 
 import { zodResolver } from "@hookform/resolvers/zod";
-import { address, isAddress, sol } from "@solana/kit";
+import {
+  address,
+  isAddress,
+  sol,
+  appendTransactionMessageInstruction,
+  compileTransaction,
+  createNoopSigner,
+  createTransactionMessage,
+  getBase58Decoder,
+  getBase64EncodedWireTransaction,
+  pipe,
+  setTransactionMessageFeePayer,
+  setTransactionMessageLifetimeUsingBlockhash,
+} from "@solana/kit";
 import { Send } from "lucide-react";
+import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { Balance } from "@/components/Balance";
-import { TransactionSuccess } from "@/components/TransactionSuccess";
-import { useWalletAddress } from "@/components/hooks";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -19,10 +31,11 @@ import {
 } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { useClient, useSendTransaction } from "@solana/react";
+import { useSignAndSendTransaction } from "@privy-io/react-auth/solana";
+import { useClient } from "@solana/react";
+import { TransactionSuccess } from "@/components/TransactionSuccess";
 import { AppClient } from "@/lib/solana";
-import { usePrivy } from "@privy-io/react-auth";
-import { useWallets } from "@privy-io/react-auth/solana";
+import { useWalletAddress } from "../hooks";
 
 // Kept as a string: SOL has 9 decimals, so the amount is converted to lamports later
 const transferSchema = z.object({
@@ -42,9 +55,14 @@ const transferSchema = z.object({
 type TransferSchemaType = z.infer<typeof transferSchema>;
 
 export const TransferSOLForm = () => {
-  const { ready, authenticated } = usePrivy();
-  const { wallets } = useWallets();
-  const wallet = wallets[0];
+  const { wallet, noWalletFallback } = useWalletAddress();
+
+  const client = useClient<AppClient>();
+  const { signAndSendTransaction } = useSignAndSendTransaction();
+
+  const [signature, setSignature] = useState<string | null>(null);
+  const [error, setError] = useState<string | null>(null);
+  const [isSending, setIsSending] = useState(false);
 
   const {
     register,
@@ -55,16 +73,44 @@ export const TransferSOLForm = () => {
     defaultValues: { destination: "", amount: "" },
   });
 
-  if (!ready) return null;
-  if (!authenticated || !wallet)
-    return (
-      <p className="text-sm text-muted-foreground">
-        Connect your wallet to continue.
-      </p>
-    );
+  if (!wallet) return noWalletFallback;
 
-  const onSubmit = (values: TransferSchemaType) => {
-    console.log("values", values);
+  const onSubmit = async (values: TransferSchemaType) => {
+    setSignature(null);
+    setError(null);
+    setIsSending(true);
+
+    const source = address(wallet.address);
+
+    try {
+      const { value: blockhash } = await client.rpc.getLatestBlockhash().send();
+
+      const transferSOLIx = client.system.instructions.transferSol({
+        source: createNoopSigner(source),
+        destination: address(values.destination),
+        amount: sol(values.amount).raw,
+      });
+
+      const transferSOLTx = pipe(
+        createTransactionMessage({ version: 0 }),
+        (tx) => setTransactionMessageFeePayer(source, tx),
+        (tx) => appendTransactionMessageInstruction(transferSOLIx, tx),
+        (tx) => setTransactionMessageLifetimeUsingBlockhash(blockhash, tx),
+        (tx) => compileTransaction(tx),
+        (tx) => getBase64EncodedWireTransaction(tx),
+      );
+
+      const transferSOLTxResult = await signAndSendTransaction({
+        transaction: Buffer.from(transferSOLTx, "base64"),
+        wallet,
+        chain: "solana:devnet",
+      });
+      setSignature(getBase58Decoder().decode(transferSOLTxResult.signature));
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "Transaction failed");
+    } finally {
+      setIsSending(false);
+    }
   };
 
   return (
@@ -84,17 +130,15 @@ export const TransferSOLForm = () => {
             </CardDescription>
           </CardHeader>
           <CardContent className="flex flex-col gap-4">
-            {/* {isSuccess && data && (
-              <TransactionSuccess signature={data.context.signature} />
-            )}
-            {isError && (
+            {signature && <TransactionSuccess signature={signature} />}
+            {error && (
               <p
                 role="alert"
                 className="rounded-lg border border-destructive/50 p-3 text-sm text-destructive"
               >
-                {error instanceof Error ? error.message : "Transaction failed"}
+                {error}
               </p>
-            )} */}
+            )}
             <div className="flex flex-col gap-2">
               <Label htmlFor="destination">Destination</Label>
               <Input
@@ -152,11 +196,11 @@ export const TransferSOLForm = () => {
           <CardFooter>
             <Button
               type="submit"
-              // disabled={isRunning}
+              disabled={isSending}
               className="w-full sm:w-auto"
             >
               <Send />
-              {/* {isRunning ? "Sending…" : "Transfer"} */}
+              {isSending ? "Sending…" : "Transfer"}
             </Button>
           </CardFooter>
         </form>

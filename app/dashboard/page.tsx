@@ -1,10 +1,10 @@
-import { TokenBalances } from "@/components/dashboard/TokenBalances";
 import { TransferSOLForm } from "@/components/dashboard/TransferSOLForm";
+import { WelcomeUser } from "@/components/dashboard/WelcomeUser";
 
 export default function Page() {
   return (
     <div className="flex flex-col gap-6">
-      <TokenBalances />
+      <WelcomeUser />
       <TransferSOLForm />
     </div>
   );
