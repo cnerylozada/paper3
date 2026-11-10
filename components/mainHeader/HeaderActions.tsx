@@ -13,11 +13,10 @@ import { useWallets } from "@privy-io/react-auth/solana";
 export const HeaderActions = () => {
   const { ready, authenticated, logout } = usePrivy();
   const { wallets } = useWallets();
+  const wallet = wallets[0];
 
   if (!ready) return null;
-  if (!authenticated) return <ConnectWalletButton />;
-
-  const wallet = wallets[0];
+  if (!authenticated || !wallet) return <ConnectWalletButton />;
 
   return (
     <>

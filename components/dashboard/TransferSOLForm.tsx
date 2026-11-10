@@ -21,6 +21,8 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useClient, useSendTransaction } from "@solana/react";
 import { AppClient } from "@/lib/solana";
+import { usePrivy } from "@privy-io/react-auth";
+import { useWallets } from "@privy-io/react-auth/solana";
 
 // Kept as a string: SOL has 9 decimals, so the amount is converted to lamports later
 const transferSchema = z.object({
@@ -40,10 +42,9 @@ const transferSchema = z.object({
 type TransferSchemaType = z.infer<typeof transferSchema>;
 
 export const TransferSOLForm = () => {
-  const client = useClient<AppClient>();
-  const { walletAddress, noWalletFallback } = useWalletAddress();
-  const { data, dispatch, isRunning, isSuccess, isError, error, reset } =
-    useSendTransaction(client);
+  const { ready, authenticated } = usePrivy();
+  const { wallets } = useWallets();
+  const wallet = wallets[0];
 
   const {
     register,
@@ -54,22 +55,21 @@ export const TransferSOLForm = () => {
     defaultValues: { destination: "", amount: "" },
   });
 
-  if (!walletAddress) return noWalletFallback;
+  if (!ready) return null;
+  if (!authenticated || !wallet)
+    return (
+      <p className="text-sm text-muted-foreground">
+        Connect your wallet to continue.
+      </p>
+    );
 
   const onSubmit = (values: TransferSchemaType) => {
-    reset();
-    dispatch(
-      client.system.instructions.transferSol({
-        source: client.payer,
-        destination: address(values.destination),
-        amount: sol(values.amount).raw,
-      }),
-    );
+    console.log("values", values);
   };
 
   return (
     <div className="flex flex-col gap-6">
-      <Balance address={walletAddress} variant="card" />
+      <Balance address={address(wallet.address)} variant="card" />
 
       <Card className="w-full max-w-2xl">
         <form
@@ -84,7 +84,7 @@ export const TransferSOLForm = () => {
             </CardDescription>
           </CardHeader>
           <CardContent className="flex flex-col gap-4">
-            {isSuccess && data && (
+            {/* {isSuccess && data && (
               <TransactionSuccess signature={data.context.signature} />
             )}
             {isError && (
@@ -94,7 +94,7 @@ export const TransferSOLForm = () => {
               >
                 {error instanceof Error ? error.message : "Transaction failed"}
               </p>
-            )}
+            )} */}
             <div className="flex flex-col gap-2">
               <Label htmlFor="destination">Destination</Label>
               <Input
@@ -152,11 +152,11 @@ export const TransferSOLForm = () => {
           <CardFooter>
             <Button
               type="submit"
-              disabled={isRunning}
+              // disabled={isRunning}
               className="w-full sm:w-auto"
             >
               <Send />
-              {isRunning ? "Sending…" : "Transfer"}
+              {/* {isRunning ? "Sending…" : "Transfer"} */}
             </Button>
           </CardFooter>
         </form>

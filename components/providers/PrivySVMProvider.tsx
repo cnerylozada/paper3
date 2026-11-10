@@ -1,7 +1,6 @@
 "use client";
 
 import { PrivyProvider } from "@privy-io/react-auth";
-import { toSolanaWalletConnectors } from "@privy-io/react-auth/solana";
 
 export const PrivySVMProvider = ({
   children,
@@ -11,13 +10,16 @@ export const PrivySVMProvider = ({
   <PrivyProvider
     appId={process.env.NEXT_PUBLIC_PRIVY_APP_ID!}
     config={{
+      loginMethods: ["google"],
+      appearance: {
+        landingHeader: "Log in to Paper3",
+        loginMessage: "Tokenize your intellectual property",
+      },
       embeddedWallets: {
         solana: {
           createOnLogin: "users-without-wallets",
         },
       },
-      appearance: { walletChainType: "ethereum-and-solana" },
-      externalWallets: { solana: { connectors: toSolanaWalletConnectors() } },
     }}
   >
     {children}
