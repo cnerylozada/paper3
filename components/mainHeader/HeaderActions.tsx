@@ -7,7 +7,6 @@ import { CopyAddress } from "@/components/CopyAddress";
 import { Button } from "@/components/ui/button";
 import { address } from "@solana/kit";
 import { usePrivy } from "@privy-io/react-auth";
-import { ConnectWalletButton } from "./ConnectWalletButton";
 import { useWallets } from "@privy-io/react-auth/solana";
 
 export const HeaderActions = () => {
@@ -16,7 +15,12 @@ export const HeaderActions = () => {
   const wallet = wallets[0];
 
   if (!ready) return null;
-  if (!authenticated || !wallet) return <ConnectWalletButton />;
+  if (!authenticated || !wallet)
+    return (
+      <Button nativeButton={false} render={<Link href="/login" />}>
+        Login
+      </Button>
+    );
 
   return (
     <>

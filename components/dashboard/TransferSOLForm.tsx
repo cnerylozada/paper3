@@ -10,7 +10,7 @@ import {
   createNoopSigner,
   createTransactionMessage,
   getBase58Decoder,
-  getBase64EncodedWireTransaction,
+  getTransactionEncoder,
   pipe,
   setTransactionMessageFeePayer,
   setTransactionMessageLifetimeUsingBlockhash,
@@ -31,13 +31,12 @@ import {
 } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { useSignAndSendTransaction } from "@privy-io/react-auth/solana";
 import { useClient } from "@solana/react";
 import { TransactionSuccess } from "@/components/TransactionSuccess";
 import { AppClient } from "@/lib/solana";
 import { useWalletAddress } from "../hooks";
+import { useSignAndSendTransaction } from "@privy-io/react-auth/solana";
 
-// Kept as a string: SOL has 9 decimals, so the amount is converted to lamports later
 const transferSchema = z.object({
   destination: z
     .string()
@@ -80,31 +79,35 @@ export const TransferSOLForm = () => {
     setError(null);
     setIsSending(true);
 
-    const source = address(wallet.address);
+    const walletAddress = address(wallet.address);
 
     try {
-      const { value: blockhash } = await client.rpc.getLatestBlockhash().send();
+      const { value: latestBlockhash } = await client.rpc
+        .getLatestBlockhash()
+        .send();
 
       const transferSOLIx = client.system.instructions.transferSol({
-        source: createNoopSigner(source),
+        source: createNoopSigner(walletAddress),
         destination: address(values.destination),
         amount: sol(values.amount).raw,
       });
 
       const transferSOLTx = pipe(
         createTransactionMessage({ version: 0 }),
-        (tx) => setTransactionMessageFeePayer(source, tx),
+        (tx) => setTransactionMessageFeePayer(walletAddress, tx),
+        (tx) =>
+          setTransactionMessageLifetimeUsingBlockhash(latestBlockhash, tx), // Set recent blockhash
         (tx) => appendTransactionMessageInstruction(transferSOLIx, tx),
-        (tx) => setTransactionMessageLifetimeUsingBlockhash(blockhash, tx),
-        (tx) => compileTransaction(tx),
-        (tx) => getBase64EncodedWireTransaction(tx),
+        (tx) => compileTransaction(tx), // Compile the transaction
+        (tx) => new Uint8Array(getTransactionEncoder().encode(tx)), // Finally encode the transaction
       );
 
       const transferSOLTxResult = await signAndSendTransaction({
-        transaction: Buffer.from(transferSOLTx, "base64"),
+        transaction: transferSOLTx,
         wallet,
         chain: "solana:devnet",
       });
+
       setSignature(getBase58Decoder().decode(transferSOLTxResult.signature));
     } catch (e) {
       setError(e instanceof Error ? e.message : "Transaction failed");
