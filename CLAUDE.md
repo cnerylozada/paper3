@@ -31,7 +31,7 @@ Login and the wallet come from Privy (`components/providers/PrivySVMProvider.tsx
 
 Kit's `walletSigner` is still in `lib/solana.ts` (the RPC plugin needs a payer on the client) but nothing connects through it, so **`client.payer` is not the user's wallet**. Build transactions with `createNoopSigner(address(wallet.address))` as the source and fee payer, then send with Privy's `useSignAndSendTransaction()` (`components/dashboard/TransferSOLForm.tsx`).
 
-Privy needs its own RPC for every chain it signs on: `solana.rpcs` in `PrivySVMProvider`, and pass `chain: "solana:devnet"` when signing, or it defaults to mainnet and fails ("No RPC configuration found" / "error preparing your transaction"). Its peer dependency `@solana-program/memo` must be installed.
+Privy needs its own RPC for every chain it signs on: `solana.rpcs` in `PrivySVMProvider`, and pass `chain: "solana:devnet"` when signing, or it defaults to mainnet and fails ("No RPC configuration found" / "error preparing your transaction"). `@solana-program/memo` is in `package.json` only because Privy needs it: `@privy-io/react-auth/solana` imports it internally and declares it as a peer dependency, so npm doesn't install it. Without it Next fails with `Module not found: Can't resolve '@solana-program/memo'` on any page that loads Privy's Solana hooks. Our code never imports it; don't remove it.
 
 ### Fetching with `useRequest` (`@solana/react`)
 

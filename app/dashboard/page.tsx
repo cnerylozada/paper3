@@ -1,3 +1,4 @@
+import { NFT101 } from "@/components/dashboard/NFT101";
 import { TransferSOLForm } from "@/components/dashboard/TransferSOLForm";
 import { WelcomeUser } from "@/components/dashboard/WelcomeUser";
 
@@ -6,6 +7,7 @@ export default function Page() {
     <div className="flex flex-col gap-6">
       <WelcomeUser />
       <TransferSOLForm />
+      <NFT101 />
     </div>
   );
 }
