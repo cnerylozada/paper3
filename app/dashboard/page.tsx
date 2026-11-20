@@ -1,6 +1,7 @@
 import { CreateSquad } from "@/components/dashboard/CreateSquad";
 import { LeadMember } from "@/components/dashboard/LeadMember";
 import { NFT101 } from "@/components/dashboard/NFT101";
+import { TokenBalances } from "@/components/dashboard/TokenBalances";
 import { TransferSOLForm } from "@/components/dashboard/TransferSOLForm";
 import { WelcomeUser } from "@/components/dashboard/WelcomeUser";
 
@@ -10,6 +11,7 @@ export default function Page() {
       <LeadMember />
       {/* <CreateSquad /> */}
       <WelcomeUser />
+      <TokenBalances />
       <TransferSOLForm />
       <NFT101 />
     </div>

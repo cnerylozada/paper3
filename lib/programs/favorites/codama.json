@@ -1,0 +1,16 @@
+{
+  "idl": "idl.json",
+  "before": [],
+  "scripts": {
+    "js": {
+      "from": "@codama/renderers-js",
+      "args": [
+        ".",
+        {
+          "generatedFolder": "lib/programs/favorites/generated",
+          "syncPackageJson": false
+        }
+      ]
+    }
+  }
+}
