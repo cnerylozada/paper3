@@ -21,6 +21,7 @@
     "@solana/kit-plugin-rpc": "^0.23.0",
     "@solana/kit-plugin-wallet": "^0.23.0",
     "@solana/react": "^8.6.0",
+    "@sqds/multisig-kit": "^0.1.1",
     "class-variance-authority": "^0.7.1",
     "cn": "^0.5.2",
     "lucide-react": "^1.66.0",
