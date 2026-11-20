@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { LogOut } from "lucide-react";
 import { Balance } from "@/components/Balance";
 import { CopyAddress } from "@/components/CopyAddress";
@@ -13,6 +14,12 @@ export const HeaderActions = () => {
   const { ready, authenticated, logout } = usePrivy();
   const { wallets } = useWallets();
   const wallet = wallets[0];
+  const router = useRouter();
+
+  const onLogout = async () => {
+    await logout();
+    router.push("/login");
+  };
 
   if (!ready) return null;
   if (!authenticated || !wallet)
@@ -46,7 +53,7 @@ export const HeaderActions = () => {
           size="icon-sm"
           aria-label="Disconnect"
           title="Disconnect"
-          onClick={() => logout()}
+          onClick={onLogout}
         >
           <LogOut />
         </Button>
