@@ -16,8 +16,8 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "FS1 SVM Dapp",
-  description: "Solana dapp",
+  title: "Paper3",
+  description: "Tokenize your intellectual property on Solana",
 };
 
 export default function RootLayout({ children }: LayoutProps<"/">) {
