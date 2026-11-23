@@ -1,47 +1,39 @@
 "use client";
 
+import { useSignAndSendTransaction } from "@privy-io/react-auth/solana";
 import { useClient, useRequest } from "@solana/react";
-import { ArrowRight, RefreshCw } from "lucide-react";
-import { useCallback } from "react";
-import { CopyAddress } from "@/components/CopyAddress";
+import {
+  Address,
+  address,
+  appendTransactionMessageInstruction,
+  compileTransaction,
+  createNoopSigner,
+  createTransactionMessage,
+  getBase58Decoder,
+  getTransactionEncoder,
+  pipe,
+  setTransactionMessageFeePayer,
+  setTransactionMessageLifetimeUsingBlockhash,
+} from "@solana/kit";
+import { RefreshCw } from "lucide-react";
+import { useCallback, useState } from "react";
+import { TransactionSuccess } from "@/components/TransactionSuccess";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
-import { formatTokenAmount } from "@/components/utils";
-import { SWAP_PROGRAM_ADDRESS } from "@/lib/programs/swap/generated";
+import { Offer, SWAP_PROGRAM_ADDRESS } from "@/lib/programs/swap/generated";
 import { AppClient } from "@/lib/solana";
-
-// We assume every mint has 9 decimals
-const DECIMALS = 9;
-
-// One side of an offer: amount + mint
-const Side = ({
-  label,
-  amount,
-  mint,
-}: {
-  label: string;
-  amount: bigint;
-  mint: string;
-}) => (
-  <div className="flex min-w-0 flex-1 flex-col gap-0.5">
-    <span className="text-xs text-muted-foreground">{label}</span>
-    <span className="text-lg font-semibold tabular-nums">
-      {formatTokenAmount(amount, DECIMALS)}
-    </span>
-    <CopyAddress value={mint} />
-  </div>
-);
-
-// created_at is a unix timestamp in seconds
-const formatDate = (seconds: bigint) =>
-  new Date(Number(seconds) * 1000).toLocaleString(undefined, {
-    dateStyle: "medium",
-    timeStyle: "short",
-  });
+import { useWalletAddress } from "../hooks";
+import { OfferCard } from "./OfferCard";
 
 export const OfferList = () => {
+  const { wallet, noWalletFallback } = useWalletAddress();
   const client = useClient<AppClient>();
+  const { signAndSendTransaction } = useSignAndSendTransaction();
+
+  const [signature, setSignature] = useState<string | null>(null);
+  const [error, setError] = useState<string | null>(null);
+  // Address of the offer being taken (disables the buttons meanwhile)
+  const [takingOffer, setTakingOffer] = useState<Address | null>(null);
 
   const fetchOffers = useCallback(async () => {
     // Every account owned by the swap program is an Offer
@@ -60,6 +52,56 @@ export const OfferList = () => {
 
   const { data: offers, status, refresh } = useRequest(fetchOffers);
 
+  if (!wallet) return noWalletFallback;
+
+  const takeOffer = async (offerAddress: Address, offer: Offer) => {
+    setSignature(null);
+    setError(null);
+    setTakingOffer(offerAddress);
+
+    const walletAddress = address(wallet.address);
+
+    try {
+      const { value: latestBlockhash } = await client.rpc
+        .getLatestBlockhash()
+        .send();
+
+      // The plugin resolves the vault and all the ATAs from these inputs
+      const takeOfferIx = await client.swap.instructions.takeOffer({
+        taker: createNoopSigner(walletAddress),
+        maker: offer.maker,
+        offer: offerAddress,
+        offeredMint: offer.offeredMint,
+        wantedMint: offer.wantedMint,
+      });
+
+      const takeOfferTx = pipe(
+        createTransactionMessage({ version: 0 }),
+        (tx) => setTransactionMessageFeePayer(walletAddress, tx),
+        (tx) =>
+          setTransactionMessageLifetimeUsingBlockhash(latestBlockhash, tx),
+        (tx) => appendTransactionMessageInstruction(takeOfferIx, tx),
+        (tx) => compileTransaction(tx),
+        (tx) => new Uint8Array(getTransactionEncoder().encode(tx)),
+      );
+
+      const takeOfferTxResult = await signAndSendTransaction({
+        transaction: takeOfferTx,
+        wallet,
+        chain: "solana:devnet",
+      });
+
+      setSignature(getBase58Decoder().decode(takeOfferTxResult.signature));
+      // The offer account is closed, so reload the list
+      refresh();
+    } catch (e) {
+      console.log("error", e);
+      setError(e instanceof Error ? e.message : "Transaction failed");
+    } finally {
+      setTakingOffer(null);
+    }
+  };
+
   return (
     <div className="flex flex-col gap-3">
       <div className="flex items-center justify-between">
@@ -74,6 +116,15 @@ export const OfferList = () => {
           Refresh
         </Button>
       </div>
+      {signature && <TransactionSuccess signature={signature} />}
+      {error && (
+        <p
+          role="alert"
+          className="rounded-lg border border-destructive/50 p-3 text-sm text-destructive"
+        >
+          {error}
+        </p>
+      )}
       {status === "error" && (
         <p role="alert" className="text-sm text-destructive">
           Could not load the offers
@@ -84,29 +135,13 @@ export const OfferList = () => {
         <p className="text-sm text-muted-foreground">No offers yet</p>
       )}
       {offers?.map(({ address, data }) => (
-        <Card key={address} size="sm" className="w-full max-w-md">
-          <CardContent className="flex flex-col gap-3">
-            <div className="flex items-center gap-3">
-              <Side
-                label="Offers"
-                amount={data.offeredAmount}
-                mint={data.offeredMint}
-              />
-              <ArrowRight className="size-4 shrink-0 text-muted-foreground" />
-              <Side
-                label="Wants"
-                amount={data.wantedAmount}
-                mint={data.wantedMint}
-              />
-            </div>
-            <time
-              dateTime={new Date(Number(data.createdAt) * 1000).toISOString()}
-              className="text-xs text-muted-foreground"
-            >
-              {formatDate(data.createdAt)}
-            </time>
-          </CardContent>
-        </Card>
+        <OfferCard
+          key={address}
+          offer={data}
+          isTaking={takingOffer === address}
+          disabled={takingOffer !== null}
+          onTakeOffer={() => takeOffer(address, data)}
+        />
       ))}
     </div>
   );
