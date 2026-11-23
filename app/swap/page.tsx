@@ -1,5 +1,6 @@
+import { TokenBalances } from "@/components/dashboard/TokenBalances";
 import { MakeOffer } from "@/components/swap/MakeOffer";
-import { Offers } from "@/components/swap/Offers";
+import { OfferList } from "@/components/swap/OfferList";
 
 export default function Page() {
   return (
@@ -13,8 +14,9 @@ export default function Page() {
           choose what you want in return. Anyone can take your offer.
         </p>
       </div>
-      <Offers />
+      <TokenBalances />
       <MakeOffer />
+      <OfferList />
     </div>
   );
 }
