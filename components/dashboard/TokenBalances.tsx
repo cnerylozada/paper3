@@ -30,9 +30,9 @@ import { useWalletAddress } from "@/components/hooks";
 
 // Hardcoded for now
 const MINTS = [
-  address("tksqnfjAzpYCdLpkCkNsgMi2iF3CaCVWSm1Ec2SM5Fy"),
-  address("tkvBYR38RDmjhyVC848rcwkYfu8p44N6y2bPz1X3f4E"),
-  address("tkmtgcJCzSMCzvSGZUikSSY9ZwEoMwWwsLpkofBmFYQ"),
+  address("9ZZMtJ9y5mES7P4bgBUa3pcgpNzqwaw4pPLzn8Ghau64"),
+  address("EtUUV91XJKe4VthcQCb1RBAiDBepMVnXg57hSyKJjYdX"),
+  address("3znVbWWQcDPxhUNoZcMd3fQSDarCLwXqtAUut2GPhgU1"),
 ];
 
 export const TokenBalances = () => {

@@ -20,5 +20,5 @@ export function proxy(request: NextRequest) {
 
 // Only the private pages; everything else stays public
 export const config = {
-  matcher: ["/dashboard/:path*", "/favorites/:path*"],
+  matcher: ["/dashboard/:path*", "/favorites/:path*", "/swap/:path*"],
 };

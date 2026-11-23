@@ -4,6 +4,7 @@ import { walletSigner } from "@solana/kit-plugin-wallet";
 import { systemProgram } from "@solana-program/system";
 import { tokenProgram } from "@solana-program/token";
 import { favoritesProgram } from "./programs/favorites/generated";
+import { swapProgram } from "./programs/swap/generated";
 
 export const solanaClient = createClient()
   // Wallet support: discovers installed wallets (Phantom, Solflare, ...), handles connect/disconnect,
@@ -17,6 +18,7 @@ export const solanaClient = createClient()
   .use(systemProgram())
   // SPL Token Program helpers (e.g. createMint, mintToATA, transferToATA).
   .use(tokenProgram())
-  .use(favoritesProgram());
+  .use(favoritesProgram())
+  .use(swapProgram());
 
 export type AppClient = Awaited<typeof solanaClient>;
