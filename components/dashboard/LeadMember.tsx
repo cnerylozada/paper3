@@ -89,6 +89,8 @@ export const LeadMember = () => {
       MULTISIG_PDA,
     );
 
+    console.log("data", data);
+
     // Proposals have no list on-chain: transaction indexes go from 1 to
     // transactionIndex, and each one has a proposal PDA
     const transactionIndexes = Array.from(
