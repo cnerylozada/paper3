@@ -11,22 +11,25 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { useWalletAddress } from "../hooks";
 import { collectionBaseSchema } from "./SoloCollectionForm";
-import { COLLECTION_IMAGE_URL } from "./constants";
+import { MAX_MEMBERS, MIN_MEMBERS } from "@/server/constants";
+import { uploadTeamCollection } from "@/server/pinata/teamCollection";
+import { CollectionUploaded } from "./CollectionUploaded";
 import { FormField } from "./FormField";
 
-const MIN_MEMBERS = 2;
-const MAX_MEMBERS = 5;
+// Mock until the submit creates the squad. It will be the new multisig address
+const MOCK_SQUAD = "5CbNUCvtTUZEPkuUGHHio5dGuBQ7D5zSvoZ2NR9JVSr5";
 
 const address = z
   .string()
   .refine((value) => isAddress(value), "Enter a valid address");
 
+// The creator (the connected wallet) is always the first member and is not in
+// the form's list, so the list holds one member less than the team
 const schema = collectionBaseSchema.extend({
-  squad: address.transform((value) => value.trim()), // the multisig address
   members: z
     .array(z.object({ address }))
-    .min(MIN_MEMBERS, `A team needs at least ${MIN_MEMBERS} members`)
-    .max(MAX_MEMBERS, `A team has at most ${MAX_MEMBERS} members`)
+    .min(MIN_MEMBERS - 1, `A team needs at least ${MIN_MEMBERS} members`)
+    .max(MAX_MEMBERS - 1, `A team has at most ${MAX_MEMBERS} members`)
     .refine(
       (members) =>
         new Set(members.map((m) => m.address.trim())).size === members.length,
@@ -41,20 +44,21 @@ type SchemaType = z.output<typeof schema>;
 export const TeamCollectionForm = () => {
   const { wallet, noWalletFallback } = useWalletAddress();
 
-  const [metadata, setMetadata] = useState<object | null>(null);
+  const [uri, setUri] = useState<string | null>(null);
+  const [error, setError] = useState<string | null>(null);
 
   const {
     register,
     control,
+    setError: setFormError,
     handleSubmit,
-    formState: { errors },
+    formState: { errors, isSubmitting },
   } = useForm<FormValues, unknown, SchemaType>({
     resolver: zodResolver(schema),
     defaultValues: {
       name: "",
       description: "",
-      squad: "",
-      members: [{ address: "" }, { address: "" }],
+      members: [{ address: "" }],
     },
   });
 
@@ -65,16 +69,25 @@ export const TeamCollectionForm = () => {
 
   if (!wallet) return noWalletFallback;
 
-  const onSubmit = ({ squad, members, ...collection }: SchemaType) => {
-    setMetadata({
-      ...collection,
-      image: COLLECTION_IMAGE_URL,
-      attributes: [
-        { trait_type: "Mode", value: "Team" },
-        { trait_type: "Squad", value: squad },
-      ],
-      properties: { creators: members },
-    });
+  const onSubmit = async ({ members, ...collection }: SchemaType) => {
+    setError(null);
+    setUri(null);
+    // The creator goes first, then the members the student added
+    const team = [wallet.address, ...members.map((m) => m.address.trim())];
+    if (new Set(team).size !== team.length) {
+      setFormError("members", { message: "A wallet is listed twice" });
+      return;
+    }
+    try {
+      const { url } = await uploadTeamCollection({
+        ...collection,
+        squad: MOCK_SQUAD,
+        members: team,
+      });
+      setUri(url);
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "Upload failed");
+    }
   };
 
   return (
@@ -109,33 +122,26 @@ export const TeamCollectionForm = () => {
           {...register("description")}
         />
       </FormField>
-      <FormField
-        id="team-squad"
-        label="Squad address"
-        hint="The squad's multisig address"
-        error={errors.squad?.message}
-      >
-        <Input
-          id="team-squad"
-          className="font-mono"
-          autoComplete="off"
-          aria-invalid={!!errors.squad}
-          aria-describedby={errors.squad ? "team-squad-error" : undefined}
-          {...register("squad")}
-        />
-      </FormField>
       <fieldset className="flex flex-col gap-3">
         <legend className="text-sm font-medium">Members</legend>
         <p className="text-xs text-muted-foreground">
           Between {MIN_MEMBERS} and {MAX_MEMBERS} wallets. Each one is a creator
         </p>
+        <FormField id="team-member-creator" label="Member 1 (you, the creator)">
+          <Input
+            id="team-member-creator"
+            className="font-mono"
+            value={wallet.address}
+            disabled
+          />
+        </FormField>
         {fields.map((field, index) => {
           const error = errors.members?.[index]?.address?.message;
           return (
             <FormField
               key={field.id}
               id={`team-member-${index}`}
-              label={`Member ${index + 1}`}
+              label={`Member ${index + 2}`}
               error={error}
             >
               <div className="flex gap-2">
@@ -154,8 +160,8 @@ export const TeamCollectionForm = () => {
                   type="button"
                   variant="outline"
                   size="icon"
-                  aria-label={`Remove member ${index + 1}`}
-                  disabled={fields.length <= MIN_MEMBERS}
+                  aria-label={`Remove member ${index + 2}`}
+                  disabled={fields.length <= MIN_MEMBERS - 1}
                   onClick={() => remove(index)}
                 >
                   <Trash2 />
@@ -174,20 +180,25 @@ export const TeamCollectionForm = () => {
           variant="outline"
           size="sm"
           className="self-start"
-          disabled={fields.length >= MAX_MEMBERS}
+          disabled={fields.length >= MAX_MEMBERS - 1}
           onClick={() => append({ address: "" })}
         >
           <Plus />
           Add member
         </Button>
       </fieldset>
-      {metadata && (
-        <pre className="overflow-x-auto rounded-lg border p-3 text-xs">
-          {JSON.stringify(metadata, null, 2)}
-        </pre>
+      {uri && <CollectionUploaded uri={uri} />}
+      {error && (
+        <p role="alert" className="text-xs text-destructive">
+          {error}
+        </p>
       )}
-      <Button type="submit" className="w-full sm:w-auto sm:self-start">
-        Create team collection
+      <Button
+        type="submit"
+        disabled={isSubmitting}
+        className="w-full sm:w-auto sm:self-start"
+      >
+        {isSubmitting ? "Uploading..." : "Create team collection"}
       </Button>
     </form>
   );

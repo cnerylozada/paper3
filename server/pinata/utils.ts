@@ -1,7 +1,7 @@
+import { createHash } from "node:crypto";
 import { PINATA_GROUPS_URL, PINATA_UPLOAD_URL } from "../constants";
 
-// A student has one public group, named after the wallet. The first upload
-// creates it, the next ones reuse it
+// Finds a public group by its exact name, or creates it the first time
 export const getOrCreateGroup = async (name: string) => {
   const headers = { Authorization: `Bearer ${process.env.PINATA_JWT}` };
   const url = PINATA_GROUPS_URL;
@@ -35,6 +35,18 @@ export const slugify = (text: string) =>
     .toLowerCase()
     .replace(/[^a-z0-9]+/g, "-")
     .replace(/^-|-$/g, "");
+
+// Group name of one collection: "solo-<12 hex of the owner's hash>-<slug>".
+// Pinata limits group names to 50 characters and an address alone takes up to
+// 44, so the address is hashed. 5 + 12 + 1 + 32 (the longest slug) = 50
+export const collectionGroupName = (
+  mode: "solo" | "team",
+  owner: string, // the student's wallet, or the squad's multisig address
+  collectionName: string,
+) => {
+  const ownerHash = createHash("sha256").update(owner).digest("hex");
+  return `${mode}-${ownerHash.slice(0, 12)}-${slugify(collectionName)}`;
+};
 
 // Uploads one file to Pinata's public network, inside a group, and returns its
 // CID and gateway URL. It lives here and not in a "use server" file on purpose:

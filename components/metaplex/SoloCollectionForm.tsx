@@ -1,7 +1,6 @@
 "use client";
 
 import { zodResolver } from "@hookform/resolvers/zod";
-import { CircleCheck } from "lucide-react";
 import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
@@ -10,6 +9,7 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { useWalletAddress } from "../hooks";
 import { uploadSoloCollection } from "@/server/pinata/soloCollection";
+import { CollectionUploaded } from "./CollectionUploaded";
 import { FormField } from "./FormField";
 
 export const collectionBaseSchema = z.object({
@@ -87,25 +87,7 @@ export const SoloCollectionForm = () => {
         You will be the only creator:{" "}
         <span className="font-mono">{wallet.address}</span>
       </p>
-      {uri && (
-        <div
-          role="status"
-          className="flex flex-col gap-1 rounded-lg border border-green-600/30 bg-green-600/10 p-3 text-sm"
-        >
-          <p className="flex items-center gap-2 font-medium">
-            <CircleCheck className="size-4 text-green-600" />
-            Collection metadata uploaded
-          </p>
-          <a
-            href={uri}
-            target="_blank"
-            rel="noreferrer"
-            className="break-all font-mono text-xs underline"
-          >
-            {uri}
-          </a>
-        </div>
-      )}
+      {uri && <CollectionUploaded uri={uri} />}
       {error && (
         <p role="alert" className="text-xs text-destructive">
           {error}

@@ -24,13 +24,13 @@ export const UploadCollectionForm = () => {
       </CardHeader>
       <CardContent>
         <Tabs defaultValue="solo" className="gap-4">
-          <TabsList className="w-full sm:w-fit">
-            <TabsTrigger value="solo">
-              <User />
+          <TabsList className="w-full group-data-horizontal/tabs:h-12">
+            <TabsTrigger value="solo" className="text-base">
+              <User className="size-5" />
               Solo
             </TabsTrigger>
-            <TabsTrigger value="team">
-              <Users />
+            <TabsTrigger value="team" className="text-base">
+              <Users className="size-5" />
               Team
             </TabsTrigger>
           </TabsList>

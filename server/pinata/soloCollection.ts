@@ -1,9 +1,13 @@
 "use server";
 
 import { isAddress } from "@solana/kit";
-import { COLLECTION_IMAGE_URL } from "@/components/metaplex/constants";
-import { MAX_COLLECTION_NAME_LENGTH } from "../constants";
-import { getOrCreateGroup, slugify, uploadPublicFile } from "./utils";
+import { COLLECTION_IMAGE_URL, MAX_COLLECTION_NAME_LENGTH } from "../constants";
+import {
+  collectionGroupName,
+  getOrCreateGroup,
+  slugify,
+  uploadPublicFile,
+} from "./utils";
 
 // Builds the solo collection JSON (docs/metadata/solo/collection.json) and
 // uploads it to Pinata's public network. The returned URL is the collection's
@@ -19,7 +23,12 @@ export const uploadSoloCollection = async ({
 }) => {
   name = name.trim();
   description = description.trim();
-  if (!name || name.length > MAX_COLLECTION_NAME_LENGTH || !description) {
+  if (
+    !name ||
+    name.length > MAX_COLLECTION_NAME_LENGTH ||
+    !slugify(name) ||
+    !description
+  ) {
     throw new Error("Invalid collection");
   }
   if (!isAddress(owner)) {
@@ -34,13 +43,16 @@ export const uploadSoloCollection = async ({
     properties: { creators: [{ address: owner }] },
   };
 
-  const groupId = await getOrCreateGroup(`solo-${owner}`);
+  // One public group per collection, so its JSON and its papers stay together
+  const groupId = await getOrCreateGroup(
+    collectionGroupName("solo", owner, name),
+  );
 
   return uploadPublicFile({
     file: new File([JSON.stringify(metadata)], "collection.json", {
       type: "application/json",
     }),
-    name: `collection-${slugify(name) || "collection"}.json`,
+    name: "collection.json",
     groupId,
     keyvalues: { kind: "collection", owner, mode: "solo" },
   }).then((file) => ({ groupId, ...file }));
