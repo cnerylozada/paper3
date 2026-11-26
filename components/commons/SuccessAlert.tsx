@@ -10,10 +10,13 @@ export const SuccessAlert = ({
   title: string;
   href: string;
 }) => (
-  <Alert role="status">
+  <Alert
+    role="status"
+    className="border-green-600/30 bg-green-50 text-green-800 dark:border-green-500/30 dark:bg-green-950/40 dark:text-green-300"
+  >
     <CircleCheck />
     <AlertTitle>{title}</AlertTitle>
-    <AlertDescription>
+    <AlertDescription className="text-green-800/90 dark:text-green-300/90">
       <a
         href={href}
         target="_blank"
