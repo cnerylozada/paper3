@@ -1,0 +1,36 @@
+{
+  "name": "<PAPER_TITLE>",
+  "description": "<PAPER_ABSTRACT>",
+  "image": "https://gateway.pinata.cloud/ipfs/<SVG_CID>",
+  "external_url": "https://paper3.example.com/api/papers/<MINT_ADDRESS>",
+  "attributes": [
+    {
+      "trait_type": "Status",
+      "value": "Draft"
+    },
+    {
+      "trait_type": "Field",
+      "value": "Blockchain"
+    },
+    {
+      "trait_type": "Language",
+      "value": "English"
+    },
+    {
+      "trait_type": "Created",
+      "value": "2026-11-25"
+    },
+    {
+      "trait_type": "Document Hash (SHA-256)",
+      "value": "<HASH_OF_THE_PDF>"
+    }
+  ],
+  "properties": {
+    "creators": [
+      {
+        "address": "<STUDENT_WALLET>"
+      }
+    ],
+    "category": "image"
+  }
+}

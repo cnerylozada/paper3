@@ -1,0 +1,18 @@
+{
+  "name": "Student Research Papers",
+  "description": "Papers by a solo student.",
+  "image": "https://gateway.pinata.cloud/ipfs/<COVER_CID>",
+  "attributes": [
+    {
+      "trait_type": "Mode",
+      "value": "Solo"
+    }
+  ],
+  "properties": {
+    "creators": [
+      {
+        "address": "<STUDENT_WALLET>"
+      }
+    ]
+  }
+}

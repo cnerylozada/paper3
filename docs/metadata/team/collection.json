@@ -1,0 +1,28 @@
+{
+  "name": "Blockchain Research Team",
+  "description": "Papers by the Blockchain Research Team.",
+  "image": "https://gateway.pinata.cloud/ipfs/<COVER_CID>",
+  "attributes": [
+    {
+      "trait_type": "Mode",
+      "value": "Team"
+    },
+    {
+      "trait_type": "Squad",
+      "value": "<SQUAD_MULTISIG_ADDRESS>"
+    }
+  ],
+  "properties": {
+    "creators": [
+      {
+        "address": "<MEMBER_1_WALLET>"
+      },
+      {
+        "address": "<MEMBER_2_WALLET>"
+      },
+      {
+        "address": "<MEMBER_3_WALLET>"
+      }
+    ]
+  }
+}
