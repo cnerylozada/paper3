@@ -2,8 +2,10 @@
 
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useState } from "react";
+import { useSignAndSendTransaction } from "@privy-io/react-auth/solana";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
+import { TransactionSuccess } from "@/components/TransactionSuccess";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -11,6 +13,7 @@ import { useWalletAddress } from "../hooks";
 import { uploadSoloCollection } from "@/server/pinata/soloCollection";
 import { CollectionUploaded } from "./CollectionUploaded";
 import { FormField } from "./FormField";
+import { mintCollection } from "./mintCollection";
 
 export const collectionBaseSchema = z.object({
   name: z.string().trim().min(1, "Enter a name").max(32, "Max 32 characters"),
@@ -24,7 +27,10 @@ export const SoloCollectionForm = () => {
   const { wallet, noWalletFallback } = useWalletAddress();
 
   const [uri, setUri] = useState<string | null>(null);
+  const [signature, setSignature] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
+
+  const { signAndSendTransaction } = useSignAndSendTransaction();
 
   const {
     register,
@@ -40,14 +46,27 @@ export const SoloCollectionForm = () => {
   const onSubmit = async (values: SchemaType) => {
     setError(null);
     setUri(null);
+    setSignature(null);
     try {
+      // 1. The metadata JSON goes to Pinata, its URL is the collection's uri
       const { url } = await uploadSoloCollection({
         ...values,
         owner: wallet.address,
       });
       setUri(url);
+
+      // 2. The collection is minted on-chain with that uri
+      const { signature } = await mintCollection({
+        wallet,
+        signAndSendTransaction,
+        name: values.name,
+        uri: url,
+      });
+      setSignature(signature);
     } catch (e) {
-      setError(e instanceof Error ? e.message : "Upload failed");
+      setError(
+        e instanceof Error ? e.message : "Could not create the collection",
+      );
     }
   };
 
@@ -88,6 +107,7 @@ export const SoloCollectionForm = () => {
         <span className="font-mono">{wallet.address}</span>
       </p>
       {uri && <CollectionUploaded uri={uri} />}
+      {signature && <TransactionSuccess signature={signature} />}
       {error && (
         <p role="alert" className="text-xs text-destructive">
           {error}
@@ -98,7 +118,7 @@ export const SoloCollectionForm = () => {
         disabled={isSubmitting}
         className="w-full sm:w-auto sm:self-start"
       >
-        {isSubmitting ? "Uploading..." : "Create collection"}
+        {isSubmitting ? "Creating..." : "Create collection"}
       </Button>
     </form>
   );
