@@ -9,10 +9,10 @@ import { createUmi } from "@metaplex-foundation/umi-bundle-defaults";
 import type { useSignAndSendTransaction } from "@privy-io/react-auth/solana";
 import { getBase58Decoder } from "@solana/kit";
 
-type Wallet = Parameters<
+export type Wallet = Parameters<
   ReturnType<typeof useSignAndSendTransaction>["signAndSendTransaction"]
 >[0]["wallet"];
-type SignAndSendTransaction = ReturnType<
+export type SignAndSendTransaction = ReturnType<
   typeof useSignAndSendTransaction
 >["signAndSendTransaction"];
 

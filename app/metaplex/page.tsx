@@ -1,4 +1,4 @@
-import { UploadCollectionForm } from "@/components/metaplex/UploadCollectionForm";
+import { UploadCollectionForm } from "@/components/collections/UploadCollectionForm";
 
 export default function Page() {
   return (

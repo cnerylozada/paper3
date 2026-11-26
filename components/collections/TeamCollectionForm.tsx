@@ -1,48 +1,33 @@
 "use client";
 
 import { zodResolver } from "@hookform/resolvers/zod";
-import { isAddress } from "@solana/kit";
 import { Plus, Trash2 } from "lucide-react";
 import { useState } from "react";
+import { useSignAndSendTransaction } from "@privy-io/react-auth/solana";
+import { useClient } from "@solana/react";
 import { useFieldArray, useForm } from "react-hook-form";
-import { z } from "zod";
+import { SuccessAlert } from "@/components/commons/SuccessAlert";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { useWalletAddress } from "../hooks";
-import { collectionBaseSchema } from "./SoloCollectionForm";
+import { AppClient } from "@/lib/solana";
 import { MAX_MEMBERS, MIN_MEMBERS } from "@/server/constants";
 import { uploadTeamCollection } from "@/server/pinata/teamCollection";
-import { CollectionUploaded } from "./CollectionUploaded";
-import { FormField } from "./FormField";
-
-// Mock until the submit creates the squad. It will be the new multisig address
-const MOCK_SQUAD = "5CbNUCvtTUZEPkuUGHHio5dGuBQ7D5zSvoZ2NR9JVSr5";
-
-const address = z
-  .string()
-  .refine((value) => isAddress(value), "Enter a valid address");
-
-// The creator (the connected wallet) is always the first member and is not in
-// the form's list, so the list holds one member less than the team
-const schema = collectionBaseSchema.extend({
-  members: z
-    .array(z.object({ address }))
-    .min(MIN_MEMBERS - 1, `A team needs at least ${MIN_MEMBERS} members`)
-    .max(MAX_MEMBERS - 1, `A team has at most ${MAX_MEMBERS} members`)
-    .refine(
-      (members) =>
-        new Set(members.map((m) => m.address.trim())).size === members.length,
-      "A wallet is listed twice",
-    ),
-});
-
-type FormValues = z.input<typeof schema>;
-type SchemaType = z.output<typeof schema>;
+import { createSquad } from "./onchain/squads";
+import {
+  teamCollectionSchema,
+  type TeamCollectionInput,
+  type TeamCollectionValues,
+} from "./schemas";
+import { FormField } from "../commons/FormField";
 
 // Collection for the papers of a squad (docs/metadata/team/collection.json)
 export const TeamCollectionForm = () => {
   const { wallet, noWalletFallback } = useWalletAddress();
+
+  const client = useClient<AppClient>();
+  const { signAndSendTransaction } = useSignAndSendTransaction();
 
   const [uri, setUri] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -53,8 +38,8 @@ export const TeamCollectionForm = () => {
     setError: setFormError,
     handleSubmit,
     formState: { errors, isSubmitting },
-  } = useForm<FormValues, unknown, SchemaType>({
-    resolver: zodResolver(schema),
+  } = useForm<TeamCollectionInput, unknown, TeamCollectionValues>({
+    resolver: zodResolver(teamCollectionSchema),
     defaultValues: {
       name: "",
       description: "",
@@ -69,7 +54,7 @@ export const TeamCollectionForm = () => {
 
   if (!wallet) return noWalletFallback;
 
-  const onSubmit = async ({ members, ...collection }: SchemaType) => {
+  const onSubmit = async ({ members, ...collection }: TeamCollectionValues) => {
     setError(null);
     setUri(null);
     // The creator goes first, then the members the student added
@@ -79,14 +64,23 @@ export const TeamCollectionForm = () => {
       return;
     }
     try {
+      // 1. The squad is created on-chain with the team as its members
+      const { multisigPda } = await createSquad({
+        client,
+        wallet,
+        signAndSendTransaction,
+        members: team,
+      });
+
+      // 2. The metadata JSON goes to Pinata, with the new squad in it
       const { url } = await uploadTeamCollection({
         ...collection,
-        squad: MOCK_SQUAD,
+        squad: multisigPda,
         members: team,
       });
       setUri(url);
     } catch (e) {
-      setError(e instanceof Error ? e.message : "Upload failed");
+      setError(e instanceof Error ? e.message : "Could not create the team");
     }
   };
 
@@ -187,7 +181,7 @@ export const TeamCollectionForm = () => {
           Add member
         </Button>
       </fieldset>
-      {uri && <CollectionUploaded uri={uri} />}
+      {uri && <SuccessAlert title="Collection metadata uploaded" href={uri} />}
       {error && (
         <p role="alert" className="text-xs text-destructive">
           {error}
@@ -198,7 +192,7 @@ export const TeamCollectionForm = () => {
         disabled={isSubmitting}
         className="w-full sm:w-auto sm:self-start"
       >
-        {isSubmitting ? "Uploading..." : "Create team collection"}
+        {isSubmitting ? "Creating..." : "Create team collection"}
       </Button>
     </form>
   );

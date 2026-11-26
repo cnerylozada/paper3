@@ -4,23 +4,16 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useState } from "react";
 import { useSignAndSendTransaction } from "@privy-io/react-auth/solana";
 import { useForm } from "react-hook-form";
-import { z } from "zod";
-import { TransactionSuccess } from "@/components/TransactionSuccess";
+import { SuccessAlert } from "@/components/commons/SuccessAlert";
+import { explorerTxUrl } from "@/components/utils";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { useWalletAddress } from "../hooks";
 import { uploadSoloCollection } from "@/server/pinata/soloCollection";
-import { CollectionUploaded } from "./CollectionUploaded";
-import { FormField } from "./FormField";
-import { mintCollection } from "./mintCollection";
-
-export const collectionBaseSchema = z.object({
-  name: z.string().trim().min(1, "Enter a name").max(32, "Max 32 characters"),
-  description: z.string().trim().min(1, "Enter a description"),
-});
-
-type SchemaType = z.infer<typeof collectionBaseSchema>;
+import { FormField } from "../commons/FormField";
+import { mintCollection } from "./onchain/metaplex";
+import { soloCollectionSchema, type SoloCollectionValues } from "./schemas";
 
 // Collection for the papers of one student (docs/metadata/solo/collection.json)
 export const SoloCollectionForm = () => {
@@ -36,14 +29,14 @@ export const SoloCollectionForm = () => {
     register,
     handleSubmit,
     formState: { errors, isSubmitting },
-  } = useForm<SchemaType>({
-    resolver: zodResolver(collectionBaseSchema),
+  } = useForm<SoloCollectionValues>({
+    resolver: zodResolver(soloCollectionSchema),
     defaultValues: { name: "", description: "" },
   });
 
   if (!wallet) return noWalletFallback;
 
-  const onSubmit = async (values: SchemaType) => {
+  const onSubmit = async (values: SoloCollectionValues) => {
     setError(null);
     setUri(null);
     setSignature(null);
@@ -106,8 +99,13 @@ export const SoloCollectionForm = () => {
         You will be the only creator:{" "}
         <span className="font-mono">{wallet.address}</span>
       </p>
-      {uri && <CollectionUploaded uri={uri} />}
-      {signature && <TransactionSuccess signature={signature} />}
+      {uri && <SuccessAlert title="Collection metadata uploaded" href={uri} />}
+      {signature && (
+        <SuccessAlert
+          title="Transaction sent"
+          href={explorerTxUrl(signature)}
+        />
+      )}
       {error && (
         <p role="alert" className="text-xs text-destructive">
           {error}

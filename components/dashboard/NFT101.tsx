@@ -16,7 +16,8 @@ import { useSignAndSendTransaction } from "@privy-io/react-auth/solana";
 import { getBase58Decoder } from "@solana/kit";
 import { Layers } from "lucide-react";
 import { useState } from "react";
-import { TransactionSuccess } from "@/components/TransactionSuccess";
+import { SuccessAlert } from "@/components/commons/SuccessAlert";
+import { explorerTxUrl } from "@/components/utils";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -106,7 +107,12 @@ export const NFT101 = () => {
         </CardDescription>
       </CardHeader>
       <CardContent className="flex flex-col gap-4">
-        {signature && <TransactionSuccess signature={signature} />}
+        {signature && (
+          <SuccessAlert
+            title="Transaction sent"
+            href={explorerTxUrl(signature)}
+          />
+        )}
         {error && (
           <p
             role="alert"

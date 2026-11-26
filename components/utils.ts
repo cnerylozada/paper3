@@ -22,3 +22,6 @@ export const formatTokenAmount = (amount: bigint, decimals: number) => {
   const trimmed = fraction.replace(/0+$/, "");
   return trimmed ? `${whole}.${trimmed}` : `${whole}`;
 };
+
+export const explorerTxUrl = (signature: string) =>
+  `https://explorer.solana.com/tx/${signature}?cluster=devnet`;

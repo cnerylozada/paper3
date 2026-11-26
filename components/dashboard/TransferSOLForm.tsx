@@ -32,7 +32,8 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useClient } from "@solana/react";
-import { TransactionSuccess } from "@/components/TransactionSuccess";
+import { SuccessAlert } from "@/components/commons/SuccessAlert";
+import { explorerTxUrl } from "@/components/utils";
 import { AppClient } from "@/lib/solana";
 import { useWalletAddress } from "../hooks";
 import { useSignAndSendTransaction } from "@privy-io/react-auth/solana";
@@ -133,7 +134,12 @@ export const TransferSOLForm = () => {
             </CardDescription>
           </CardHeader>
           <CardContent className="flex flex-col gap-4">
-            {signature && <TransactionSuccess signature={signature} />}
+            {signature && (
+              <SuccessAlert
+                title="Transaction sent"
+                href={explorerTxUrl(signature)}
+              />
+            )}
             {error && (
               <p
                 role="alert"

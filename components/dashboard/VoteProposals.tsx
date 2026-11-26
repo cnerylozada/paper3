@@ -16,7 +16,8 @@ import {
 import * as multisig from "@sqds/multisig-kit";
 import { Check, X } from "lucide-react";
 import { useCallback, useState } from "react";
-import { TransactionSuccess } from "@/components/TransactionSuccess";
+import { SuccessAlert } from "@/components/commons/SuccessAlert";
+import { explorerTxUrl } from "@/components/utils";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -139,7 +140,12 @@ export const VoteProposals = () => {
         </CardDescription>
       </CardHeader>
       <CardContent className="flex flex-col gap-3">
-        {signature && <TransactionSuccess signature={signature} />}
+        {signature && (
+          <SuccessAlert
+            title="Transaction sent"
+            href={explorerTxUrl(signature)}
+          />
+        )}
         {error && (
           <p
             role="alert"

@@ -16,7 +16,8 @@ import {
 import * as multisig from "@sqds/multisig-kit";
 import { Play, RefreshCw } from "lucide-react";
 import { useCallback, useState } from "react";
-import { TransactionSuccess } from "@/components/TransactionSuccess";
+import { SuccessAlert } from "@/components/commons/SuccessAlert";
+import { explorerTxUrl } from "@/components/utils";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -153,7 +154,12 @@ export const ExecuteProposals = () => {
             Refresh
           </Button>
         </div>
-        {signature && <TransactionSuccess signature={signature} />}
+        {signature && (
+          <SuccessAlert
+            title="Transaction sent"
+            href={explorerTxUrl(signature)}
+          />
+        )}
         {error && (
           <p
             role="alert"
