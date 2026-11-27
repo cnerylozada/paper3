@@ -8,9 +8,9 @@ import { uploadPdfHashSvg } from "@/server/pinata/assets";
 import { uploadSoloAsset } from "@/server/pinata/soloAsset";
 import { SuccessAlert } from "@/components/commons/SuccessAlert";
 import { explorerTxUrl } from "@/components/utils";
-import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
+import { AppButton } from "../commons/AppButton";
 import { FormField } from "../commons/FormField";
 import { useWalletAddress } from "../hooks";
 import { PaperDropzoneFormField } from "./PaperDropzoneFormField";
@@ -178,13 +178,13 @@ export const UploadSoloDraftForm = () => {
           {error}
         </p>
       )}
-      <Button
+      <AppButton
         type="submit"
-        disabled={isSubmitting}
+        loading={isSubmitting}
         className="w-full sm:w-auto sm:self-start"
       >
         {isSubmitting ? "Minting..." : "Upload draft"}
-      </Button>
+      </AppButton>
     </form>
   );
 };

@@ -1,7 +1,12 @@
 import { isAddress } from "@solana/kit";
 import { z } from "zod";
 import {
+  byteLength,
+  FIELDS,
   MAX_COLLECTION_NAME_LENGTH,
+  MAX_DESCRIPTION_LENGTH,
+  MAX_KEYWORD_LENGTH,
+  MAX_KEYWORDS,
   MAX_MEMBERS,
   MIN_MEMBERS,
 } from "@/server/constants";
@@ -16,15 +21,25 @@ const collectionBaseSchema = z.object({
     .string()
     .trim()
     .min(1, "Enter a name")
-    .max(
-      MAX_COLLECTION_NAME_LENGTH,
-      `Max ${MAX_COLLECTION_NAME_LENGTH} characters`,
+    .refine(
+      (value) => byteLength(value) <= MAX_COLLECTION_NAME_LENGTH,
+      `Max ${MAX_COLLECTION_NAME_LENGTH} bytes (accents and emoji count more)`,
     ),
-  description: z.string().trim().min(1, "Enter a description"),
+  description: z
+    .string()
+    .trim()
+    .min(1, "Enter a description")
+    .max(MAX_DESCRIPTION_LENGTH, `Max ${MAX_DESCRIPTION_LENGTH} characters`),
 });
 
 // Solo: the student is the only creator, so there is nothing else to ask
-export const soloCollectionSchema = collectionBaseSchema;
+export const soloCollectionSchema = collectionBaseSchema.extend({
+  field: z.enum(FIELDS, "Choose a field"),
+  keywords: z
+    .array(z.string().trim().min(1).max(MAX_KEYWORD_LENGTH))
+    .min(1, "Add at least one keyword")
+    .max(MAX_KEYWORDS, `Up to ${MAX_KEYWORDS} keywords`),
+});
 export type SoloCollectionValues = z.infer<typeof soloCollectionSchema>;
 
 // Team: the creator (the connected wallet) is always the first member and is

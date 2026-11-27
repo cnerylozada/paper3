@@ -1,7 +1,15 @@
 "use server";
 
 import { isAddress } from "@solana/kit";
-import { COLLECTION_IMAGE_URL, MAX_COLLECTION_NAME_LENGTH } from "../constants";
+import {
+  byteLength,
+  COLLECTION_IMAGE_URL,
+  FIELDS,
+  MAX_COLLECTION_NAME_LENGTH,
+  MAX_DESCRIPTION_LENGTH,
+  MAX_KEYWORD_LENGTH,
+  MAX_KEYWORDS,
+} from "../constants";
 import {
   collectionGroupName,
   getOrCreateGroup,
@@ -15,19 +23,29 @@ import {
 export const uploadSoloCollection = async ({
   name,
   description,
+  field,
+  keywords,
   owner,
 }: {
   name: string;
   description: string;
+  field: string;
+  keywords: string[];
   owner: string; // the student's wallet, its only creator
 }) => {
   name = name.trim();
   description = description.trim();
+  keywords = keywords.map((keyword) => keyword.trim());
   if (
     !name ||
-    name.length > MAX_COLLECTION_NAME_LENGTH ||
+    byteLength(name) > MAX_COLLECTION_NAME_LENGTH ||
     !slugify(name) ||
-    !description
+    !description ||
+    description.length > MAX_DESCRIPTION_LENGTH ||
+    !(FIELDS as readonly string[]).includes(field) ||
+    keywords.length < 1 ||
+    keywords.length > MAX_KEYWORDS ||
+    keywords.some((k) => !k || k.length > MAX_KEYWORD_LENGTH)
   ) {
     throw new Error("Invalid collection");
   }
@@ -39,7 +57,11 @@ export const uploadSoloCollection = async ({
     name,
     description,
     image: COLLECTION_IMAGE_URL,
-    attributes: [{ trait_type: "Mode", value: "Solo" }],
+    attributes: [
+      { trait_type: "Mode", value: "Solo" },
+      { trait_type: "Field", value: field },
+      { trait_type: "Keywords", value: keywords.join(", ") },
+    ],
     properties: { creators: [{ address: owner }] },
   };
 

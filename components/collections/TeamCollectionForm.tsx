@@ -20,6 +20,7 @@ import {
   type TeamCollectionInput,
   type TeamCollectionValues,
 } from "./schemas";
+import { AppButton } from "../commons/AppButton";
 import { FormField } from "../commons/FormField";
 
 // Collection for the papers of a squad (docs/metadata/team/collection.json)
@@ -187,13 +188,13 @@ export const TeamCollectionForm = () => {
           {error}
         </p>
       )}
-      <Button
+      <AppButton
         type="submit"
-        disabled={isSubmitting}
+        loading={isSubmitting}
         className="w-full sm:w-auto sm:self-start"
       >
         {isSubmitting ? "Creating..." : "Create team collection"}
-      </Button>
+      </AppButton>
     </form>
   );
 };

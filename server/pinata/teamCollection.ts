@@ -3,7 +3,9 @@
 import { isAddress } from "@solana/kit";
 import {
   COLLECTION_IMAGE_URL,
+  byteLength,
   MAX_COLLECTION_NAME_LENGTH,
+  MAX_DESCRIPTION_LENGTH,
   MAX_MEMBERS,
   MIN_MEMBERS,
 } from "../constants";
@@ -32,9 +34,10 @@ export const uploadTeamCollection = async ({
   description = description.trim();
   if (
     !name ||
-    name.length > MAX_COLLECTION_NAME_LENGTH ||
+    byteLength(name) > MAX_COLLECTION_NAME_LENGTH ||
     !slugify(name) ||
-    !description
+    !description ||
+    description.length > MAX_DESCRIPTION_LENGTH
   ) {
     throw new Error("Invalid collection");
   }

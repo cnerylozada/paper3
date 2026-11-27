@@ -1,6 +1,7 @@
 "use server";
 
 import { isAddress } from "@solana/kit";
+import { byteLength, MAX_COLLECTION_NAME_LENGTH } from "../constants";
 import { uploadPublicFile } from "./utils";
 
 // Builds the solo asset JSON (docs/metadata/solo/asset.json) and uploads it to
@@ -29,7 +30,13 @@ export const uploadSoloAsset = async ({
   description = description.trim();
   field = field.trim();
   language = language.trim();
-  if (!name || !description || !field || !language) {
+  if (
+    !name ||
+    byteLength(name) > MAX_COLLECTION_NAME_LENGTH ||
+    !description ||
+    !field ||
+    !language
+  ) {
     throw new Error("Invalid paper");
   }
   if (!/^[0-9a-f]{64}$/.test(docHash)) {
