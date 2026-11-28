@@ -37,9 +37,6 @@ export const createSquad = async ({
     createKey: createKeySigner.address,
   });
 
-  // The vault (index 0) is the squad's account that holds funds and assets
-  const [vaultPda] = await multisig.getVaultPda({ multisigPda, index: 0 });
-
   // The Squads program charges a creation fee that goes to its treasury
   const [programConfigPda] = await multisig.getProgramConfigPda({});
   const { data: programConfig } = await multisig.accounts.fetchProgramConfig(
@@ -93,6 +90,5 @@ export const createSquad = async ({
   return {
     signature: getBase58Decoder().decode(result.signature),
     multisigPda,
-    vaultPda,
   };
 };

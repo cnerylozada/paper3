@@ -55,7 +55,7 @@ export default async function Page({
         <div className="flex flex-col gap-6">
           <EmptyVersionList
             isCreator={collection.isCreator}
-            createHref={`/dashboard/${userId}/collections/${collectionId}/assets/create`}
+            createHref={`/dashboard/${userId}/collections/${collectionId}/assets/create/${collection.mode}`}
           />
 
           <Card>

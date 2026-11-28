@@ -14,6 +14,101 @@ export type Database = {
   }
   public: {
     Tables: {
+      asset_approvals: {
+        Row: {
+          asset_id: string
+          created_at: string
+          tx_signature: string
+          user_id: string
+        }
+        Insert: {
+          asset_id: string
+          created_at?: string
+          tx_signature: string
+          user_id: string
+        }
+        Update: {
+          asset_id?: string
+          created_at?: string
+          tx_signature?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "asset_approvals_asset_id_fkey"
+            columns: ["asset_id"]
+            isOneToOne: false
+            referencedRelation: "assets"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "asset_approvals_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      assets: {
+        Row: {
+          collection_id: string
+          created_at: string
+          description: string
+          document_type: Database["public"]["Enums"]["asset_document_type"]
+          file_uri: string
+          id: string
+          language: Database["public"]["Enums"]["asset_language"]
+          metadata_uri: string
+          mint_tx_signature: string
+          nft_address: string
+          proposal_tx_signature: string | null
+          title: string
+          version: string
+          whats_new: string | null
+        }
+        Insert: {
+          collection_id: string
+          created_at?: string
+          description: string
+          document_type: Database["public"]["Enums"]["asset_document_type"]
+          file_uri: string
+          id?: string
+          language: Database["public"]["Enums"]["asset_language"]
+          metadata_uri: string
+          mint_tx_signature: string
+          nft_address: string
+          proposal_tx_signature?: string | null
+          title: string
+          version: string
+          whats_new?: string | null
+        }
+        Update: {
+          collection_id?: string
+          created_at?: string
+          description?: string
+          document_type?: Database["public"]["Enums"]["asset_document_type"]
+          file_uri?: string
+          id?: string
+          language?: Database["public"]["Enums"]["asset_language"]
+          metadata_uri?: string
+          mint_tx_signature?: string
+          nft_address?: string
+          proposal_tx_signature?: string | null
+          title?: string
+          version?: string
+          whats_new?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "assets_collection_id_fkey"
+            columns: ["collection_id"]
+            isOneToOne: false
+            referencedRelation: "collections"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       collection_members: {
         Row: {
           collection_id: string
@@ -141,6 +236,14 @@ export type Database = {
       [_ in never]: never
     }
     Enums: {
+      asset_document_type:
+        | "Article"
+        | "Thesis or dissertation"
+        | "Literature review"
+        | "Research proposal"
+        | "Report"
+        | "Other"
+      asset_language: "English" | "Spanish" | "Portuguese" | "Other"
       collection_field:
         | "Biology"
         | "Chemistry"
@@ -279,6 +382,15 @@ export type CompositeTypes<
 export const Constants = {
   public: {
     Enums: {
+      asset_document_type: [
+        "Article",
+        "Thesis or dissertation",
+        "Literature review",
+        "Research proposal",
+        "Report",
+        "Other",
+      ],
+      asset_language: ["English", "Spanish", "Portuguese", "Other"],
       collection_field: [
         "Biology",
         "Chemistry",

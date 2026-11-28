@@ -15,7 +15,9 @@ export default async function Page({
       <h1 className="text-3xl font-semibold tracking-tight">
         Publish first version
       </h1>
-      <p className="text-muted-foreground">Mock page: the form goes here.</p>
+      <p className="text-muted-foreground">
+        Mock page: the team form goes here.
+      </p>
     </div>
   );
 }

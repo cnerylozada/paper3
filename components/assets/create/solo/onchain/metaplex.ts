@@ -1,8 +1,4 @@
-import {
-  create,
-  fetchCollection,
-  mplCore,
-} from "@metaplex-foundation/mpl-core";
+import { createV2, mplCore } from "@metaplex-foundation/mpl-core";
 import {
   createNoopSigner,
   generateSigner,
@@ -19,7 +15,7 @@ import type {
 // Mints a Metaplex Core asset inside a collection. The wallet must be the
 // collection's update authority (the one that created it).
 // `name` must match the `name` of the metadata JSON that `uri` points to
-export const mintAsset = async ({
+export const mintAssetInCollection = async ({
   wallet,
   signAndSendTransaction,
   collection,
@@ -39,9 +35,9 @@ export const mintAsset = async ({
   // The asset is a new account, so it needs its own keypair
   const assetSigner = generateSigner(umi);
 
-  const assetTx = await create(umi, {
+  const assetTx = await createV2(umi, {
     asset: assetSigner,
-    collection: await fetchCollection(umi, publicKey(collection)),
+    collection: publicKey(collection),
     name,
     uri,
   }).buildAndSign(umi); // signs with the asset keypair only
