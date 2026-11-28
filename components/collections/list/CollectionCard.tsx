@@ -37,8 +37,9 @@ export const CollectionCard = ({
       <div className="flex flex-col gap-1 rounded-lg border border-dashed bg-muted/40 p-4">
         <p className="font-medium">No versions yet</p>
         <p className="text-sm text-muted-foreground">
-          Not on the marketplace. Upload your first draft to publish v1.0 and
-          set its price.
+          {collection.isCreator
+            ? "Not on the marketplace. Upload your first draft to publish v1.0 and set its price."
+            : "Not on the marketplace. The creator will publish v1.0."}
         </p>
       </div>
     </CardContent>
@@ -51,7 +52,7 @@ export const CollectionCard = ({
         })}
       </span>
       <AppLinkButton href={`/dashboard/${userId}/collections/${collection.id}`}>
-        Publish first version
+        {collection.isCreator ? "Publish first version" : "Open"}
       </AppLinkButton>
     </CardFooter>
   </Card>

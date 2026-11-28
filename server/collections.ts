@@ -169,3 +169,51 @@ export const getCollectionListByMember = async (userId: string) => {
 export type CollectionCardItem = Awaited<
   ReturnType<typeof getCollectionListByMember>
 >[number];
+
+// One collection of a user, null if it does not exist or the user is not a
+// member of it
+export const getCollectionByMember = async (
+  userId: string,
+  collectionId: string,
+) => {
+  if (!userId.trim() || !collectionId.trim()) {
+    throw new Error("Invalid collection");
+  }
+
+  const { data, error } = await supabase
+    .from("collection_members")
+    .select(
+      "is_creator, collections(id, mode, name, description, field, keywords, nft_address, tx_signature, multisig_pda, created_at, members:collection_members(is_creator, users(id, wallet_address)))",
+    )
+    .eq("user_id", userId)
+    .eq("collection_id", collectionId)
+    .maybeSingle();
+  if (error) {
+    throw new Error("Could not get the collection");
+  }
+  if (!data?.collections) return null;
+
+  const { members, ...collection } = data.collections;
+  return {
+    ...collection,
+    isCreator: data.is_creator,
+    // The creator goes first
+    memberList: members
+      .flatMap(({ is_creator, users }) =>
+        users
+          ? [
+              {
+                userId: users.id,
+                walletAddress: users.wallet_address,
+                isCreator: is_creator,
+              },
+            ]
+          : [],
+      )
+      .sort((a, b) => Number(b.isCreator) - Number(a.isCreator)),
+  };
+};
+
+export type CollectionDetail = NonNullable<
+  Awaited<ReturnType<typeof getCollectionByMember>>
+>;
