@@ -17,10 +17,16 @@ export const CollectionCard = ({
       <div className="flex items-center justify-between gap-2">
         <div className="flex items-center gap-2">
           <Badge variant="secondary">
-            {collection.mode === "solo" ? "Solo" : "Team"}
+            {collection.mode === "solo"
+              ? "Solo"
+              : `Team of ${collection.memberCount}`}
           </Badge>
-          {collection.isCreator && (
+          {collection.isCreator ? (
             <Badge className="bg-primary/10 text-primary">Creator</Badge>
+          ) : (
+            <Badge className="bg-green-100 text-green-800 dark:bg-green-950/40 dark:text-green-300">
+              Co-author
+            </Badge>
           )}
         </div>
         <span className="text-xs font-medium tracking-wide text-muted-foreground uppercase">
@@ -38,7 +44,11 @@ export const CollectionCard = ({
     </CardContent>
     <CardFooter className="justify-between gap-2">
       <span className="text-sm text-muted-foreground">
-        Created {new Date(collection.created_at).toLocaleDateString("en-US")}
+        Created{" "}
+        {new Date(collection.created_at).toLocaleString("en-US", {
+          dateStyle: "medium",
+          timeStyle: "short",
+        })}
       </span>
       <AppLinkButton href={`/dashboard/${userId}/collections/${collection.id}`}>
         Publish first version

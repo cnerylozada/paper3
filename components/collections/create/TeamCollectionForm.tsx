@@ -13,7 +13,10 @@ import { Constants } from "@/lib/database.types";
 import { useWalletAddress } from "@/components/hooks";
 import { AppClient } from "@/lib/solana";
 import { byteLength } from "@/server/constants";
+import { saveCollection } from "@/server/collections";
 import { uploadTeamCollection } from "@/server/pinata/teamCollection";
+import { explorerTxUrl } from "@/components/utils";
+import { mintCollection } from "./onchain/metaplex";
 import { createSquad } from "./onchain/squads";
 import {
   teamCollectionSchema,
@@ -45,6 +48,8 @@ export const TeamCollectionForm = () => {
   const { signAndSendTransaction } = useSignAndSendTransaction();
 
   const [uri, setUri] = useState<string | null>(null);
+  const [signature, setSignature] = useState<string | null>(null);
+  const [isSaved, setIsSaved] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   const {
@@ -76,6 +81,8 @@ export const TeamCollectionForm = () => {
   const onSubmit = async ({ members, ...collection }: TeamCollectionValues) => {
     setError(null);
     setUri(null);
+    setSignature(null);
+    setIsSaved(false);
     // The creator goes first, then the members the student added
     const team = [wallet.address, ...members.map((m) => m.address.trim())];
     if (new Set(team).size !== team.length) {
@@ -98,6 +105,28 @@ export const TeamCollectionForm = () => {
         members: team,
       });
       setUri(url);
+
+      // 3. The collection is minted on-chain with that uri
+      const { signature, collection: nftAddress } = await mintCollection({
+        wallet,
+        signAndSendTransaction,
+        name: collection.name,
+        uri: url,
+      });
+      setSignature(signature);
+
+      // 4. The collection and its members are stored
+      await saveCollection({
+        mode: "team",
+        creatorWallet: wallet.address,
+        members: team,
+        ...collection,
+        nftAddress,
+        uri: url,
+        txSignature: signature,
+        multisigPda,
+      });
+      setIsSaved(true);
     } catch (e) {
       setError(e instanceof Error ? e.message : "Could not create the team");
     }
@@ -247,6 +276,17 @@ export const TeamCollectionForm = () => {
         </Button>
       </fieldset>
       {uri && <StatusAlert title="Collection metadata uploaded" href={uri} />}
+      {signature && (
+        <StatusAlert
+          title="Collection NFT minted on Solana"
+          href={explorerTxUrl(signature)}
+        />
+      )}
+      {isSaved && (
+        <StatusAlert title="Collection saved">
+          It is in your collections now.
+        </StatusAlert>
+      )}
       {error && (
         <p role="alert" className="text-xs text-destructive">
           {error}

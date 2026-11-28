@@ -33,6 +33,7 @@ export const SoloCollectionForm = () => {
 
   const [uri, setUri] = useState<string | null>(null);
   const [signature, setSignature] = useState<string | null>(null);
+  const [isSaved, setIsSaved] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   const { signAndSendTransaction } = useSignAndSendTransaction();
@@ -56,6 +57,7 @@ export const SoloCollectionForm = () => {
     setError(null);
     setUri(null);
     setSignature(null);
+    setIsSaved(false);
     try {
       // 1. The metadata JSON goes to Pinata, its URL is the collection's uri
       const { url } = await uploadSoloCollection({
@@ -84,6 +86,7 @@ export const SoloCollectionForm = () => {
         uri: url,
         txSignature: signature,
       });
+      setIsSaved(true);
     } catch (e) {
       setError(
         e instanceof Error ? e.message : "Could not create the collection",
@@ -176,7 +179,15 @@ export const SoloCollectionForm = () => {
       </p>
       {uri && <StatusAlert title="Collection metadata uploaded" href={uri} />}
       {signature && (
-        <StatusAlert title="Transaction sent" href={explorerTxUrl(signature)} />
+        <StatusAlert
+          title="Collection NFT minted on Solana"
+          href={explorerTxUrl(signature)}
+        />
+      )}
+      {isSaved && (
+        <StatusAlert title="Collection saved">
+          It is in your collections now.
+        </StatusAlert>
       )}
       {error && (
         <p role="alert" className="text-xs text-destructive">

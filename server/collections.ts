@@ -143,16 +143,26 @@ export const getCollectionListByMember = async (userId: string) => {
 
   const { data, error } = await supabase
     .from("collection_members")
-    .select("is_creator, collections(id, mode, name, field, created_at)")
+    .select(
+      "is_creator, collections(id, mode, name, field, created_at, members:collection_members(count))",
+    )
     .eq("user_id", userId);
   if (error) {
     throw new Error("Could not get the collections");
   }
 
   return data
-    .flatMap(({ is_creator, collections }) =>
-      collections ? [{ ...collections, isCreator: is_creator }] : [],
-    )
+    .flatMap(({ is_creator, collections }) => {
+      if (!collections) return [];
+      const { members, ...collection } = collections;
+      return [
+        {
+          ...collection,
+          memberCount: members[0]?.count ?? 1,
+          isCreator: is_creator,
+        },
+      ];
+    })
     .sort((a, b) => b.created_at.localeCompare(a.created_at));
 };
 

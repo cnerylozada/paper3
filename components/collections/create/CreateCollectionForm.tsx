@@ -33,7 +33,7 @@ const MODES = [
 }[];
 
 // The student picks the kind of collection with a card
-export const UploadCollectionForm = () => {
+export const CreateCollectionForm = () => {
   const [mode, setMode] = useState<CollectionMode>("solo");
 
   return (

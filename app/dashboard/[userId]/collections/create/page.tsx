@@ -1,6 +1,6 @@
 import { Suspense } from "react";
 import { BackLink } from "@/components/commons/BackLink";
-import { UploadCollectionForm } from "@/components/collections/create/UploadCollectionForm";
+import { CreateCollectionForm } from "@/components/collections/create/CreateCollectionForm";
 import { Separator } from "@/components/ui/separator";
 
 type Params = Promise<{ userId: string }>;
@@ -29,7 +29,7 @@ export default function Page({ params }: { params: Params }) {
         </div>
         <Separator />
       </header>
-      <UploadCollectionForm />
+      <CreateCollectionForm />
     </div>
   );
 }
