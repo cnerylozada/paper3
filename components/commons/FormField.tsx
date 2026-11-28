@@ -20,7 +20,7 @@ export const FormField = ({
   <div className="flex flex-col gap-1.5">
     <div className="flex items-center justify-between gap-2">
       <Label htmlFor={id}>{label}</Label>
-      {aside}
+      {aside && <div className="flex items-center gap-2">{aside}</div>}
     </div>
     {children}
     {hint && !error && <p className="text-xs text-muted-foreground">{hint}</p>}

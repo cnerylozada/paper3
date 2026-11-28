@@ -1,5 +1,11 @@
 import { createHash } from "node:crypto";
 import { PINATA_GROUPS_URL, PINATA_UPLOAD_URL } from "../constants";
+import {
+  MAX_KEYWORD_LENGTH,
+  MAX_KEYWORDS,
+} from "@/components/collections/models";
+import { Constants } from "@/lib/database.types";
+import type { CollectionField } from "../models/collections";
 
 // Finds a public group by its exact name, or creates it the first time
 export const getOrCreateGroup = async (name: string) => {
@@ -87,3 +93,16 @@ export const uploadPublicFile = async ({
     url: `https://${process.env.PINATA_GATEWAY}/ipfs/${data.cid}`,
   };
 };
+
+// The field and keywords every collection has, checked and written the same way
+// for solo and team
+export const isValidTopic = (field: CollectionField, keywords: string[]) =>
+  Constants.public.Enums.collection_field.includes(field) &&
+  keywords.length >= 1 &&
+  keywords.length <= MAX_KEYWORDS &&
+  keywords.every((k) => k && k.length <= MAX_KEYWORD_LENGTH);
+
+export const topicAttributes = (field: CollectionField, keywords: string[]) => [
+  { trait_type: "Field", value: field },
+  { trait_type: "Keywords", value: keywords.join(", ") },
+];

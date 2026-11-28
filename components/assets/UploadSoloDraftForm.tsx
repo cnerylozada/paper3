@@ -6,12 +6,11 @@ import { useSignAndSendTransaction } from "@privy-io/react-auth/solana";
 import { Controller, useForm } from "react-hook-form";
 import { uploadPdfHashSvg } from "@/server/pinata/assets";
 import { uploadSoloAsset } from "@/server/pinata/soloAsset";
-import { SuccessAlert } from "@/components/commons/SuccessAlert";
+import { StatusAlert } from "@/components/commons/StatusAlert";
 import { explorerTxUrl } from "@/components/utils";
-import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
 import { AppButton } from "../commons/AppButton";
-import { FormField } from "../commons/FormField";
+import { AppTextArea } from "../commons/AppTextArea";
+import { AppTextInput } from "../commons/AppTextInput";
 import { useWalletAddress } from "../hooks";
 import { PaperDropzoneFormField } from "./PaperDropzoneFormField";
 import { mintAsset } from "./onchain/metaplex";
@@ -97,58 +96,34 @@ export const UploadSoloDraftForm = () => {
       onSubmit={handleSubmit(onSubmit)}
       noValidate
     >
-      <FormField id="draft-name" label="Title" error={errors.name?.message}>
-        <Input
-          id="draft-name"
-          placeholder="Consensus in Solana"
-          autoComplete="off"
-          aria-invalid={!!errors.name}
-          aria-describedby={errors.name ? "draft-name-error" : undefined}
-          {...register("name")}
-        />
-      </FormField>
-      <FormField
+      <AppTextInput
+        id="draft-name"
+        label="Title"
+        placeholder="Consensus in Solana"
+        error={errors.name?.message}
+        {...register("name")}
+      />
+      <AppTextArea
         id="draft-description"
         label="Abstract"
         error={errors.description?.message}
-      >
-        <Textarea
-          id="draft-description"
-          rows={4}
-          aria-invalid={!!errors.description}
-          aria-describedby={
-            errors.description ? "draft-description-error" : undefined
-          }
-          {...register("description")}
-        />
-      </FormField>
+        {...register("description")}
+      />
       <div className="grid gap-4 sm:grid-cols-2">
-        <FormField id="draft-field" label="Field" error={errors.field?.message}>
-          <Input
-            id="draft-field"
-            placeholder="Blockchain"
-            autoComplete="off"
-            aria-invalid={!!errors.field}
-            aria-describedby={errors.field ? "draft-field-error" : undefined}
-            {...register("field")}
-          />
-        </FormField>
-        <FormField
+        <AppTextInput
+          id="draft-field"
+          label="Field"
+          placeholder="Blockchain"
+          error={errors.field?.message}
+          {...register("field")}
+        />
+        <AppTextInput
           id="draft-language"
           label="Language"
+          placeholder="English"
           error={errors.language?.message}
-        >
-          <Input
-            id="draft-language"
-            placeholder="English"
-            autoComplete="off"
-            aria-invalid={!!errors.language}
-            aria-describedby={
-              errors.language ? "draft-language-error" : undefined
-            }
-            {...register("language")}
-          />
-        </FormField>
+          {...register("language")}
+        />
       </div>
       <Controller
         name="pdf"
@@ -166,12 +141,9 @@ export const UploadSoloDraftForm = () => {
       <p className="rounded-lg border bg-muted/40 p-3 text-xs text-muted-foreground">
         Creator: <span className="font-mono">{wallet.address}</span>
       </p>
-      {uri && <SuccessAlert title="Asset metadata uploaded" href={uri} />}
+      {uri && <StatusAlert title="Asset metadata uploaded" href={uri} />}
       {signature && (
-        <SuccessAlert
-          title="Transaction sent"
-          href={explorerTxUrl(signature)}
-        />
+        <StatusAlert title="Transaction sent" href={explorerTxUrl(signature)} />
       )}
       {error && (
         <p role="alert" className="text-xs text-destructive">

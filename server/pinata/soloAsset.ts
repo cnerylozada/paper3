@@ -1,7 +1,8 @@
 "use server";
 
 import { isAddress } from "@solana/kit";
-import { byteLength, MAX_COLLECTION_NAME_LENGTH } from "../constants";
+import { MAX_COLLECTION_NAME_LENGTH } from "@/components/collections/models";
+import { byteLength } from "../constants";
 import { uploadPublicFile } from "./utils";
 
 // Builds the solo asset JSON (docs/metadata/solo/asset.json) and uploads it to

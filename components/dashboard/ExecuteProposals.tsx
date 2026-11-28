@@ -16,7 +16,7 @@ import {
 import * as multisig from "@sqds/multisig-kit";
 import { Play, RefreshCw } from "lucide-react";
 import { useCallback, useState } from "react";
-import { SuccessAlert } from "@/components/commons/SuccessAlert";
+import { StatusAlert } from "@/components/commons/StatusAlert";
 import { explorerTxUrl } from "@/components/utils";
 import { Button } from "@/components/ui/button";
 import {
@@ -155,7 +155,7 @@ export const ExecuteProposals = () => {
           </Button>
         </div>
         {signature && (
-          <SuccessAlert
+          <StatusAlert
             title="Transaction sent"
             href={explorerTxUrl(signature)}
           />

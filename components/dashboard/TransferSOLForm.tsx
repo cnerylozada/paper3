@@ -32,7 +32,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useClient } from "@solana/react";
-import { SuccessAlert } from "@/components/commons/SuccessAlert";
+import { StatusAlert } from "@/components/commons/StatusAlert";
 import { explorerTxUrl } from "@/components/utils";
 import { AppClient } from "@/lib/solana";
 import { useWalletAddress } from "../hooks";
@@ -135,7 +135,7 @@ export const TransferSOLForm = () => {
           </CardHeader>
           <CardContent className="flex flex-col gap-4">
             {signature && (
-              <SuccessAlert
+              <StatusAlert
                 title="Transaction sent"
                 href={explorerTxUrl(signature)}
               />

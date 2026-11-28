@@ -2,17 +2,19 @@
 
 import { isAddress } from "@solana/kit";
 import {
-  COLLECTION_IMAGE_URL,
-  byteLength,
   MAX_COLLECTION_NAME_LENGTH,
   MAX_DESCRIPTION_LENGTH,
   MAX_MEMBERS,
   MIN_MEMBERS,
-} from "../constants";
+} from "@/components/collections/models";
+import type { CollectionField } from "../models/collections";
+import { COLLECTION_IMAGE_URL, byteLength } from "../constants";
 import {
   collectionGroupName,
   getOrCreateGroup,
+  isValidTopic,
   slugify,
+  topicAttributes,
   uploadPublicFile,
 } from "./utils";
 
@@ -22,22 +24,28 @@ import {
 export const uploadTeamCollection = async ({
   name,
   description,
+  field,
+  keywords,
   squad,
   members,
 }: {
   name: string;
   description: string;
+  field: CollectionField;
+  keywords: string[];
   squad: string; // the squad's multisig address
   members: string[]; // the squad's wallets, every one is a creator
 }) => {
   name = name.trim();
   description = description.trim();
+  keywords = keywords.map((keyword) => keyword.trim());
   if (
     !name ||
     byteLength(name) > MAX_COLLECTION_NAME_LENGTH ||
     !slugify(name) ||
     !description ||
-    description.length > MAX_DESCRIPTION_LENGTH
+    description.length > MAX_DESCRIPTION_LENGTH ||
+    !isValidTopic(field, keywords)
   ) {
     throw new Error("Invalid collection");
   }
@@ -59,6 +67,7 @@ export const uploadTeamCollection = async ({
     image: COLLECTION_IMAGE_URL,
     attributes: [
       { trait_type: "Mode", value: "Team" },
+      ...topicAttributes(field, keywords),
       { trait_type: "Squad", value: squad },
     ],
     properties: { creators: members.map((address) => ({ address })) },

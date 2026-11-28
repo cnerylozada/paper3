@@ -5,14 +5,14 @@ import { Plus, Trash2 } from "lucide-react";
 import { useState } from "react";
 import { useSignAndSendTransaction } from "@privy-io/react-auth/solana";
 import { useClient } from "@solana/react";
-import { useFieldArray, useForm } from "react-hook-form";
-import { SuccessAlert } from "@/components/commons/SuccessAlert";
+import { Controller, useFieldArray, useForm, useWatch } from "react-hook-form";
+import { StatusAlert } from "@/components/commons/StatusAlert";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
+import { Constants } from "@/lib/database.types";
 import { useWalletAddress } from "../hooks";
 import { AppClient } from "@/lib/solana";
-import { MAX_MEMBERS, MIN_MEMBERS } from "@/server/constants";
+import { byteLength } from "@/server/constants";
 import { uploadTeamCollection } from "@/server/pinata/teamCollection";
 import { createSquad } from "./onchain/squads";
 import {
@@ -20,7 +20,21 @@ import {
   type TeamCollectionInput,
   type TeamCollectionValues,
 } from "./schemas";
+import {
+  MAX_COLLECTION_NAME_LENGTH,
+  MAX_DESCRIPTION_LENGTH,
+  MAX_KEYWORD_LENGTH,
+  MAX_KEYWORDS,
+  MAX_MEMBERS,
+  MIN_MEMBERS,
+} from "./models";
 import { AppButton } from "../commons/AppButton";
+import { AppChipGroup } from "../commons/AppChipGroup";
+import { AppKeywordsInput } from "../commons/AppKeywordsInput";
+import { AppTextArea } from "../commons/AppTextArea";
+import { CantChangeBadge } from "../commons/CantChangeBadge";
+import { LengthCounter } from "../commons/LengthCounter";
+import { AppTextInput } from "../commons/AppTextInput";
 import { FormField } from "../commons/FormField";
 
 // Collection for the papers of a squad (docs/metadata/team/collection.json)
@@ -44,9 +58,13 @@ export const TeamCollectionForm = () => {
     defaultValues: {
       name: "",
       description: "",
+      keywords: [],
       members: [{ address: "" }],
     },
   });
+
+  const nameLength = byteLength(useWatch({ control, name: "name" }));
+  const descriptionLength = useWatch({ control, name: "description" }).length;
 
   const { fields, append, remove } = useFieldArray({
     control,
@@ -91,45 +109,91 @@ export const TeamCollectionForm = () => {
       onSubmit={handleSubmit(onSubmit)}
       noValidate
     >
-      <FormField id="team-name" label="Name" error={errors.name?.message}>
-        <Input
-          id="team-name"
-          placeholder="Blockchain Research Team"
-          autoComplete="off"
-          aria-invalid={!!errors.name}
-          aria-describedby={errors.name ? "team-name-error" : undefined}
-          {...register("name")}
-        />
-      </FormField>
-      <FormField
+      <StatusAlert variant="warning" title="Saved on Solana for good">
+        The name and description can&apos;t be edited after you create the
+        collection.
+      </StatusAlert>
+      <AppTextInput
+        id="team-name"
+        label="Collection name"
+        hint="Name the topic, not a single draft."
+        placeholder="Blockchain Research Team"
+        error={errors.name?.message}
+        aside={
+          <>
+            <CantChangeBadge />
+            <LengthCounter
+              length={nameLength}
+              max={MAX_COLLECTION_NAME_LENGTH}
+            />
+          </>
+        }
+        {...register("name")}
+      />
+      <AppTextArea
         id="team-description"
         label="Description"
+        hint="One or two sentences about the question you are studying."
+        placeholder="Papers by the Blockchain Research Team."
+        maxLength={MAX_DESCRIPTION_LENGTH}
         error={errors.description?.message}
-      >
-        <Textarea
-          id="team-description"
-          rows={3}
-          placeholder="Papers by the Blockchain Research Team."
-          aria-invalid={!!errors.description}
-          aria-describedby={
-            errors.description ? "team-description-error" : undefined
-          }
-          {...register("description")}
-        />
-      </FormField>
+        aside={
+          <>
+            <CantChangeBadge />
+            <LengthCounter
+              length={descriptionLength}
+              max={MAX_DESCRIPTION_LENGTH}
+            />
+          </>
+        }
+        {...register("description")}
+      />
+      <Controller
+        name="field"
+        control={control}
+        render={({ field }) => (
+          <AppChipGroup
+            id="team-field"
+            label="Field"
+            aside={<CantChangeBadge />}
+            error={errors.field?.message}
+            options={Constants.public.Enums.collection_field}
+            value={field.value}
+            onChange={field.onChange}
+          />
+        )}
+      />
+      <Controller
+        name="keywords"
+        control={control}
+        render={({ field }) => (
+          <AppKeywordsInput
+            id="team-keywords"
+            label="Keywords"
+            hint={`Up to ${MAX_KEYWORDS} words a reader would search for. Readers find your collection by these, by name and by field.`}
+            error={errors.keywords?.message}
+            aside={
+              <LengthCounter length={field.value.length} max={MAX_KEYWORDS} />
+            }
+            value={field.value}
+            onChange={field.onChange}
+            max={MAX_KEYWORDS}
+            maxLength={MAX_KEYWORD_LENGTH}
+          />
+        )}
+      />
       <fieldset className="flex flex-col gap-3">
         <legend className="text-sm font-medium">Members</legend>
         <p className="text-xs text-muted-foreground">
           Between {MIN_MEMBERS} and {MAX_MEMBERS} wallets. Each one is a creator
         </p>
-        <FormField id="team-member-creator" label="Member 1 (you, the creator)">
-          <Input
-            id="team-member-creator"
-            className="font-mono"
-            value={wallet.address}
-            disabled
-          />
-        </FormField>
+        <AppTextInput
+          id="team-member-creator"
+          label="Member 1 (you, the creator)"
+          className="font-mono"
+          value={wallet.address}
+          disabled
+        />
         {fields.map((field, index) => {
           const error = errors.members?.[index]?.address?.message;
           return (
@@ -182,7 +246,7 @@ export const TeamCollectionForm = () => {
           Add member
         </Button>
       </fieldset>
-      {uri && <SuccessAlert title="Collection metadata uploaded" href={uri} />}
+      {uri && <StatusAlert title="Collection metadata uploaded" href={uri} />}
       {error && (
         <p role="alert" className="text-xs text-destructive">
           {error}

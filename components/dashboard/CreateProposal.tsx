@@ -17,7 +17,7 @@ import {
 import * as multisig from "@sqds/multisig-kit";
 import { FileText } from "lucide-react";
 import { useState } from "react";
-import { SuccessAlert } from "@/components/commons/SuccessAlert";
+import { StatusAlert } from "@/components/commons/StatusAlert";
 import { explorerTxUrl } from "@/components/utils";
 import { Button } from "@/components/ui/button";
 import {
@@ -148,7 +148,7 @@ export const CreateProposal = () => {
       </CardHeader>
       <CardContent className="flex flex-col gap-4">
         {signature && (
-          <SuccessAlert
+          <StatusAlert
             title="Transaction sent"
             href={explorerTxUrl(signature)}
           />

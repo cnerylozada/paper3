@@ -14,6 +14,95 @@ export type Database = {
   }
   public: {
     Tables: {
+      collection_members: {
+        Row: {
+          collection_id: string
+          created_at: string
+          is_creator: boolean
+          user_id: string
+        }
+        Insert: {
+          collection_id: string
+          created_at?: string
+          is_creator?: boolean
+          user_id: string
+        }
+        Update: {
+          collection_id?: string
+          created_at?: string
+          is_creator?: boolean
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "collection_members_collection_id_fkey"
+            columns: ["collection_id"]
+            isOneToOne: false
+            referencedRelation: "collections"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "collection_members_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      collections: {
+        Row: {
+          created_at: string
+          creator_id: string
+          description: string
+          field: Database["public"]["Enums"]["collection_field"]
+          id: string
+          keywords: string[]
+          mode: Database["public"]["Enums"]["collection_mode"]
+          multisig_pda: string | null
+          name: string
+          nft_address: string
+          tx_signature: string
+          uri: string
+        }
+        Insert: {
+          created_at?: string
+          creator_id: string
+          description: string
+          field: Database["public"]["Enums"]["collection_field"]
+          id?: string
+          keywords: string[]
+          mode: Database["public"]["Enums"]["collection_mode"]
+          multisig_pda?: string | null
+          name: string
+          nft_address: string
+          tx_signature: string
+          uri: string
+        }
+        Update: {
+          created_at?: string
+          creator_id?: string
+          description?: string
+          field?: Database["public"]["Enums"]["collection_field"]
+          id?: string
+          keywords?: string[]
+          mode?: Database["public"]["Enums"]["collection_mode"]
+          multisig_pda?: string | null
+          name?: string
+          nft_address?: string
+          tx_signature?: string
+          uri?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "collections_creator_id_fkey"
+            columns: ["creator_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       users: {
         Row: {
           avatar_url: string | null
@@ -52,7 +141,17 @@ export type Database = {
       [_ in never]: never
     }
     Enums: {
-      [_ in never]: never
+      collection_field:
+        | "Biology"
+        | "Chemistry"
+        | "Physics"
+        | "Medicine"
+        | "Engineering"
+        | "Computer science"
+        | "Economics"
+        | "Social sciences"
+        | "Other"
+      collection_mode: "solo" | "team"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -179,6 +278,19 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {},
+    Enums: {
+      collection_field: [
+        "Biology",
+        "Chemistry",
+        "Physics",
+        "Medicine",
+        "Engineering",
+        "Computer science",
+        "Economics",
+        "Social sciences",
+        "Other",
+      ],
+      collection_mode: ["solo", "team"],
+    },
   },
 } as const

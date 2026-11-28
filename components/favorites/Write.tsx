@@ -19,7 +19,7 @@ import { Save } from "lucide-react";
 import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
-import { SuccessAlert } from "@/components/commons/SuccessAlert";
+import { StatusAlert } from "@/components/commons/StatusAlert";
 import { explorerTxUrl } from "@/components/utils";
 import { Button } from "@/components/ui/button";
 import {
@@ -130,7 +130,7 @@ export const Write = () => {
         </CardHeader>
         <CardContent className="flex flex-col gap-4">
           {signature && (
-            <SuccessAlert
+            <StatusAlert
               title="Transaction sent"
               href={explorerTxUrl(signature)}
             />
