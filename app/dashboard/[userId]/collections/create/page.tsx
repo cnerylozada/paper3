@@ -1,12 +1,23 @@
+import { Suspense } from "react";
 import { BackLink } from "@/components/commons/BackLink";
-import { UploadCollectionForm } from "@/components/collections/UploadCollectionForm";
+import { UploadCollectionForm } from "@/components/collections/create/UploadCollectionForm";
 import { Separator } from "@/components/ui/separator";
 
-export default function Page() {
+type Params = Promise<{ userId: string }>;
+
+// `params` is runtime data, so it is awaited inside Suspense
+const DashboardLink = async ({ params }: { params: Params }) => {
+  const { userId } = await params;
+  return <BackLink href={`/dashboard/${userId}`}>Dashboard</BackLink>;
+};
+
+export default function Page({ params }: { params: Params }) {
   return (
     <div className="flex w-full max-w-5xl flex-col gap-6">
       <header className="flex flex-col gap-4">
-        <BackLink href="/dashboard">Dashboard</BackLink>
+        <Suspense>
+          <DashboardLink params={params} />
+        </Suspense>
         <div className="flex flex-col gap-2">
           <h1 className="text-3xl font-semibold tracking-tight">
             New collection

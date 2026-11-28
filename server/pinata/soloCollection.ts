@@ -4,7 +4,7 @@ import { isAddress } from "@solana/kit";
 import {
   MAX_COLLECTION_NAME_LENGTH,
   MAX_DESCRIPTION_LENGTH,
-} from "@/components/collections/models";
+} from "@/components/collections/create/models";
 import { byteLength, COLLECTION_IMAGE_URL } from "../constants";
 import type { CollectionField } from "../models/collections";
 import {

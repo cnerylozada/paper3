@@ -2,7 +2,7 @@ import { useLogin, usePrivy } from "@privy-io/react-auth";
 import { Wallet } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
-import { saveUser } from "@/server/users";
+import { getUserIdByWallet, saveUser } from "@/server/users";
 
 export const ConnectWalletButton = () => {
   const router = useRouter();
@@ -24,18 +24,19 @@ export const ConnectWalletButton = () => {
       );
 
       try {
-        if (wallet?.type === "wallet") {
-          await saveUser({
-            privyId: user.id,
-            walletAddress: wallet.address,
-            email: user.google?.email,
-            name: user.google?.name ?? undefined,
-          });
-        }
+        if (wallet?.type !== "wallet") throw new Error("No Solana wallet");
+        await saveUser({
+          privyId: user.id,
+          walletAddress: wallet.address,
+          email: user.google?.email,
+          name: user.google?.name ?? undefined,
+        });
+        // The dashboard lives under the user id
+        const userId = await getUserIdByWallet(wallet.address);
+        router.replace(`/dashboard/${userId}`);
       } catch (e) {
         console.error(e);
       }
-      router.replace("/dashboard");
     },
     onError: (error) => console.error("Login error:", error),
   });

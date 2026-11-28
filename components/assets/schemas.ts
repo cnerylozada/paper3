@@ -1,6 +1,6 @@
 import { z } from "zod";
 import { byteLength } from "@/server/constants";
-import { MAX_COLLECTION_NAME_LENGTH } from "../collections/models";
+import { MAX_COLLECTION_NAME_LENGTH } from "../collections/create/models";
 
 // The fields the student fills in (docs/metadata/solo/asset.json). The rest
 // is generated: status (Draft), created (today), the hash and the creator

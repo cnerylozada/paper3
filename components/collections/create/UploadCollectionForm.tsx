@@ -9,7 +9,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { RadioCardGroup } from "../commons/RadioCardGroup";
+import { RadioCardGroup } from "@/components/commons/RadioCardGroup";
 import { SoloCollectionForm } from "./SoloCollectionForm";
 import type { CollectionMode } from "@/server/models/collections";
 import { CollectionSummary } from "./CollectionSummary";

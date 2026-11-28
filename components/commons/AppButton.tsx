@@ -1,10 +1,10 @@
 import { LoaderCircle, type LucideIcon } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
-type AppButtonTheme = "primary" | "secondary" | "danger";
+export type AppButtonTheme = "primary" | "secondary" | "danger";
 
 // The look of each theme: filled, or `outline` for a border with plain text
-const VARIANTS = {
+export const VARIANTS = {
   primary: { solid: "default", outline: "outline" },
   secondary: { solid: "secondary", outline: "outline" },
   danger: { solid: "destructive", outline: "outline" },

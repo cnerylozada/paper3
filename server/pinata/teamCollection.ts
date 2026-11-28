@@ -6,7 +6,7 @@ import {
   MAX_DESCRIPTION_LENGTH,
   MAX_MEMBERS,
   MIN_MEMBERS,
-} from "@/components/collections/models";
+} from "@/components/collections/create/models";
 import type { CollectionField } from "../models/collections";
 import { COLLECTION_IMAGE_URL, byteLength } from "../constants";
 import {

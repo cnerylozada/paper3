@@ -8,6 +8,7 @@ import { CopyAddress } from "@/components/CopyAddress";
 import { Button } from "@/components/ui/button";
 import { address } from "@solana/kit";
 import { usePrivy } from "@privy-io/react-auth";
+import { useUserId } from "@/components/hooks";
 import { useWallets } from "@privy-io/react-auth/solana";
 
 export const HeaderActions = () => {
@@ -15,6 +16,7 @@ export const HeaderActions = () => {
   const { wallets } = useWallets();
   const wallet = wallets[0];
   const router = useRouter();
+  const userId = useUserId();
 
   const onLogout = async () => {
     await logout();
@@ -31,13 +33,15 @@ export const HeaderActions = () => {
 
   return (
     <>
-      <Button
-        variant="ghost"
-        nativeButton={false}
-        render={<Link href="/dashboard" />}
-      >
-        Dashboard
-      </Button>
+      {userId && (
+        <Button
+          variant="ghost"
+          nativeButton={false}
+          render={<Link href={`/dashboard/${userId}`} />}
+        >
+          Dashboard
+        </Button>
+      )}
       <div className="flex items-center gap-1 rounded-lg border bg-muted/40 py-1 pr-1 pl-2.5">
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img

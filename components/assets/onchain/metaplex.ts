@@ -14,7 +14,7 @@ import { getBase58Decoder } from "@solana/kit";
 import type {
   SignAndSendTransaction,
   Wallet,
-} from "@/components/collections/onchain/metaplex";
+} from "@/components/collections/create/onchain/metaplex";
 
 // Mints a Metaplex Core asset inside a collection. The wallet must be the
 // collection's update authority (the one that created it).

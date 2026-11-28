@@ -44,3 +44,24 @@ export const saveUser = async ({
     throw new Error("Could not save the user");
   }
 };
+
+// The id of the user (the one in the dashboard url) behind a wallet
+export const getUserIdByWallet = async (walletAddress: string) => {
+  if (!isAddress(walletAddress)) {
+    throw new Error("Invalid wallet");
+  }
+
+  const { data, error } = await supabase
+    .from("users")
+    .select("id")
+    .eq("wallet_address", walletAddress)
+    .maybeSingle();
+
+  if (error) {
+    throw new Error("Could not get the user");
+  }
+  if (!data) {
+    throw new Error("User not found");
+  }
+  return data.id;
+};

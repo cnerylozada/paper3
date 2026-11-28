@@ -1,7 +1,7 @@
 "use server";
 
 import { isAddress } from "@solana/kit";
-import { MAX_COLLECTION_NAME_LENGTH } from "@/components/collections/models";
+import { MAX_COLLECTION_NAME_LENGTH } from "@/components/collections/create/models";
 import { byteLength } from "../constants";
 import { uploadPublicFile } from "./utils";
 

@@ -3,7 +3,7 @@ import { PINATA_GROUPS_URL, PINATA_UPLOAD_URL } from "../constants";
 import {
   MAX_KEYWORD_LENGTH,
   MAX_KEYWORDS,
-} from "@/components/collections/models";
+} from "@/components/collections/create/models";
 import { Constants } from "@/lib/database.types";
 import type { CollectionField } from "../models/collections";
 

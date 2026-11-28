@@ -8,15 +8,16 @@ import { StatusAlert } from "@/components/commons/StatusAlert";
 import { explorerTxUrl } from "@/components/utils";
 import { byteLength } from "@/server/constants";
 import { Constants } from "@/lib/database.types";
-import { useWalletAddress } from "../hooks";
+import { useWalletAddress } from "@/components/hooks";
+import { saveCollection } from "@/server/collections";
 import { uploadSoloCollection } from "@/server/pinata/soloCollection";
-import { AppButton } from "../commons/AppButton";
-import { AppChipGroup } from "../commons/AppChipGroup";
-import { AppKeywordsInput } from "../commons/AppKeywordsInput";
-import { AppTextInput } from "../commons/AppTextInput";
-import { AppTextArea } from "../commons/AppTextArea";
-import { CantChangeBadge } from "../commons/CantChangeBadge";
-import { LengthCounter } from "../commons/LengthCounter";
+import { AppButton } from "@/components/commons/AppButton";
+import { AppChipGroup } from "@/components/commons/AppChipGroup";
+import { AppKeywordsInput } from "@/components/commons/AppKeywordsInput";
+import { AppTextInput } from "@/components/commons/AppTextInput";
+import { AppTextArea } from "@/components/commons/AppTextArea";
+import { CantChangeBadge } from "@/components/commons/CantChangeBadge";
+import { LengthCounter } from "@/components/commons/LengthCounter";
 import { mintCollection } from "./onchain/metaplex";
 import { soloCollectionSchema, type SoloCollectionValues } from "./schemas";
 import {
@@ -64,13 +65,25 @@ export const SoloCollectionForm = () => {
       setUri(url);
 
       // 2. The collection is minted on-chain with that uri
-      const { signature } = await mintCollection({
+      const { signature, collection } = await mintCollection({
         wallet,
         signAndSendTransaction,
         name: values.name,
         uri: url,
       });
+
       setSignature(signature);
+
+      // 3. The collection and its only member (the creator) are stored
+      await saveCollection({
+        mode: "solo",
+        creatorWallet: wallet.address,
+        members: [wallet.address],
+        ...values,
+        nftAddress: collection,
+        uri: url,
+        txSignature: signature,
+      });
     } catch (e) {
       setError(
         e instanceof Error ? e.message : "Could not create the collection",

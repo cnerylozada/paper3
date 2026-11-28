@@ -10,7 +10,7 @@ import { StatusAlert } from "@/components/commons/StatusAlert";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Constants } from "@/lib/database.types";
-import { useWalletAddress } from "../hooks";
+import { useWalletAddress } from "@/components/hooks";
 import { AppClient } from "@/lib/solana";
 import { byteLength } from "@/server/constants";
 import { uploadTeamCollection } from "@/server/pinata/teamCollection";
@@ -28,14 +28,14 @@ import {
   MAX_MEMBERS,
   MIN_MEMBERS,
 } from "./models";
-import { AppButton } from "../commons/AppButton";
-import { AppChipGroup } from "../commons/AppChipGroup";
-import { AppKeywordsInput } from "../commons/AppKeywordsInput";
-import { AppTextArea } from "../commons/AppTextArea";
-import { CantChangeBadge } from "../commons/CantChangeBadge";
-import { LengthCounter } from "../commons/LengthCounter";
-import { AppTextInput } from "../commons/AppTextInput";
-import { FormField } from "../commons/FormField";
+import { AppButton } from "@/components/commons/AppButton";
+import { AppChipGroup } from "@/components/commons/AppChipGroup";
+import { AppKeywordsInput } from "@/components/commons/AppKeywordsInput";
+import { AppTextArea } from "@/components/commons/AppTextArea";
+import { CantChangeBadge } from "@/components/commons/CantChangeBadge";
+import { LengthCounter } from "@/components/commons/LengthCounter";
+import { AppTextInput } from "@/components/commons/AppTextInput";
+import { FormField } from "@/components/commons/FormField";
 
 // Collection for the papers of a squad (docs/metadata/team/collection.json)
 export const TeamCollectionForm = () => {

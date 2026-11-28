@@ -17,7 +17,7 @@ There is no test runner configured.
 
 ## Architecture
 
-Next.js App Router dapp (React 19, Tailwind v4, shadcn/ui) that (**Paper3**, for tokenizing intellectual property) runs on **Solana devnet**. Users log in with Google through Privy, which creates an embedded Solana wallet; balances are read, SOL is transferred, Metaplex Core NFTs are minted, Squads multisigs are created and read, and an Anchor program (`favorites`) is called. Routes: `/` (home), `/login`, `/dashboard`, `/favorites`. Next.js here is a newer version than most training data; check `node_modules/next/dist/docs/` before using Next APIs (see AGENTS.md).
+Next.js App Router dapp (React 19, Tailwind v4, shadcn/ui) that (**Paper3**, for tokenizing intellectual property) runs on **Solana devnet**. Users log in with Google through Privy, which creates an embedded Solana wallet; balances are read, SOL is transferred, Metaplex Core NFTs are minted, Squads multisigs are created and read, and an Anchor program (`favorites`) is called. Routes: `/` (home), `/login`, `/dashboard`, `/dashboard/[userId]/collections/create`, `/favorites`. Next.js here is a newer version than most training data; check `node_modules/next/dist/docs/` before using Next APIs (see AGENTS.md).
 
 ### The Kit client is the center of the app
 
@@ -64,6 +64,22 @@ Installed `@solana/react` types differ from its README in places (e.g. `useTrack
 - **Squads** uses `@sqds/multisig-kit` (the Kit version of `@sqds/multisig`, no web3.js). It is a 0.x release: keep the version pinned. PDAs and instruction builders are async; signer fields accept an `Address` (becomes a no-op signer for Privy) or a real signer. `CreateSquad` creates a multisig with `multisigCreateV2` and signs the random `createKey` locally with `partiallySignTransaction([createKeySigner.keyPair], tx)`. The multisig PDA is the squad's id (not the create key); the vault (`getVaultPda`, index 0) holds funds and signs only inside vault transactions. `LeadMember` has console-logging buttons that read a multisig with `multisig.accounts.fetchMultisig`.
 - **Squads proposal flow** (`CreateProposal`, `VoteProposals`, `ExecuteProposals`, `TransactionSigners` in `components/dashboard/`, not yet rendered on the dashboard page): they share a hardcoded `MULTISIG_PDA`. Proposals have no on-chain list: read `squad.transactionIndex`, derive each `getProposalPda`, and load them with `fetchAllMaybeProposal`. `proposal.approved` lists the members who approved (the proof of who signed); `TransactionSigners` finds the Squads instruction in an execution transaction (`vaultTransactionExecute` accounts: `[multisig, proposal, transaction, member]`) and compares the squad's members with who approved or executed.
 - **Off-chain metadata templates** live in `docs/metadata/{solo,team}/{collection,asset}.json` (placeholders in `<...>`). Everything in them is public; the private PDF's Pinata CID must never appear there. The asset `image` is an SVG generated from the PDF's SHA-256 hash and uploaded to public Pinata. `share` and `License` are intentionally left out.
+
+### Supabase and server actions
+
+- `lib/supabase.ts` is a **server-only** client (`@supabase/supabase-js`, typed with `lib/database.types.ts`). It uses `SUPABASE_URL` and `SUPABASE_SECRET_KEY` (no `NEXT_PUBLIC_` vars; the secret key bypasses RLS, so never import it from a `"use client"` file). Login is Privy, not Supabase Auth, so tables have RLS on with no policies and `revoke all from anon, authenticated`: only server actions touch the DB.
+- Server actions live in `server/` (`"use server"` files, e.g. `server/users.ts`). Check `{ error }` from every query and map Postgres codes (`23505` unique violation) to friendly messages. DB column types live in `server/models/*` (e.g. `CollectionField = Enums<"collection_field">`); reuse them and `Constants.public.Enums` from the generated types instead of redefining.
+- Schema is in `supabase/migrations/`: `users`, `collections`, `collection_members` (many to many, `is_creator` flag; list a user's collections and role by querying from `collection_members`, because embedding `collections` from `users` is ambiguous with `collections.creator_id`), and the `collection_field` / `collection_mode` enums. Push with `npx supabase db push --remote` (the CLI defaults to the local Docker stack). A pushed migration is never re-run if edited: add a new one. Regenerate types with `npx supabase gen types typescript --project-id vlzlcfsmxeutzxmaeyez --schema public > lib/database.types.ts`.
+- `saveUser` runs inside `useLogin({ onComplete })` in `ConnectWalletButton`, followed by `router.replace("/dashboard")`. Do the save and redirect there, not in an effect on `authenticated`: the Google OAuth redirect unmounts the button first.
+- **Known gap:** server actions trust client input (no Privy token verification, no membership check yet).
+
+### Collections (create flow)
+
+Route `/dashboard/[userId]/collections/create` renders `UploadCollectionForm` (`components/collections/`): a `RadioCardGroup` for solo/team mode, then `SoloCollectionForm` or `TeamCollectionForm`, plus `CollectionSummary`. Zod schemas are only in `components/collections/schemas.ts`; constants (limits, field list) are in `models.ts` next to it. Limits follow the NFT: name at most 32 bytes (UTF-8, `byteLength`), uri at most 200 chars; description (max 400) is off-chain only. Each collection has a `field` (enum) and 1-5 `keywords`, saved as Field/Keywords attributes in the Pinata JSON (`server/pinata/utils.ts`, `topicAttributes`). Pinata uploads are server actions in `server/pinata/`; never print `PINATA_JWT`. Inserting into `collections` / `collection_members` after minting is not written yet.
+
+### Common components
+
+`components/commons/` holds our own form building blocks; use them directly, without wrappers: `AppButton` (`loading`), `AppTextInput`, `AppTextArea` (both with an `aside` slot for `CantChangeBadge` / `LengthCounter`), `AppChipGroup`, `AppKeywordsInput`, `RadioCardGroup`, `StatusAlert` (`variant` success or warning), `BackLink`, `FormField`. Page headers belong in the page, not in the form component. Run prettier only on specific files, never on `components/ui` (shadcn).
 
 ### Adding an Anchor program with Codama
 
